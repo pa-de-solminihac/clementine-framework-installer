@@ -40,6 +40,9 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1) {
                         $db->rollBack();
                     }
                     $db->commit();
+                    // restaure l'encodage
+                    $db->query('SET NAMES ' . __SQL_ENCODING__);
+                    $db->query('SET CHARACTER SET ' . __SQL_ENCODING__);
                     echo '<span class="ok">mise à jour de ' . $module . ' (' . $version . ') appliquée </span><br />';
                 }
 

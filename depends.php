@@ -128,7 +128,8 @@ foreach ($config_from_fs['local'] as $module => $version) {
         }
     }
 }
-if (isset($_GET['debug'])) {
+if (isset($_GET['debug']) && count($local_module_upgrades)) {
+    echo '<strong>Local module upgrades</strong>';
     echo '<pre>';
     print_r($local_module_upgrades);
     echo '</pre>';
@@ -216,8 +217,9 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
     // traduit l'arbre des dependances en conditions evaluables par PHP
     $evalstr = translate_dependencies($dependances);
 
-    // cree la table de vérité de ce systeme d'equations et renvoie la première solution valide rencontrée
-    $solution = creer_matrice_candidats($allversions, $evalstr);
+    // cree la table de vérité de ce systeme d'equations et renvoie la première solution valide rencontrée par la même occasion
+    $solution = array();
+    creer_matrice_candidats($allversions, $evalstr, $solution);
 
     // reduit le jeu de solutions : supprime les modules inutiles et dédoublonne
     $solution_reduite = reduire_jeu_solutions($solution, $evalstr);

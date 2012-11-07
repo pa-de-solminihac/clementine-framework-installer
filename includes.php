@@ -83,4 +83,25 @@ if (!ini_get('safe_mode')) {
     ini_set('max_execution_time', 0);
     set_time_limit(0);
 }
+// gestion de l'encodage
+if (isset($site_config['clementine_global']['php_encoding'])) {
+    define('__PHP_ENCODING__', $site_config['clementine_global']['php_encoding']);
+} else {
+    define('__PHP_ENCODING__', 'UTF-8');
+}
+if (isset($site_config['clementine_global']['html_encoding'])) {
+    define('__HTML_ENCODING__', $site_config['clementine_global']['html_encoding']);
+} else {
+    define('__HTML_ENCODING__', 'utf-8');
+}
+if (isset($site_config['clementine_global']['sql_encoding'])) {
+    define('__SQL_ENCODING__', $site_config['clementine_global']['sql_encoding']);
+} else {
+    define('__SQL_ENCODING__', 'utf8');
+}
+mb_internal_encoding(__PHP_ENCODING__);
+// force l'encodage du site mais n'envoie les headers que si possible (sinon PHPUnit n'aime pas...)
+if (!headers_sent()) {
+    header('Content-type: text/html; charset="' . __HTML_ENCODING__ . '"');
+}
 ?>

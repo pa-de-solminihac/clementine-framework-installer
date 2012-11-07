@@ -123,43 +123,53 @@ function get_dependencies ($module, $specific_version)
  * @param mixed $deps : tableau passé par référence dans lequel seront stockés les résultats
  * @param string $module 
  * @param string $specific_version 
+ * @param array $allversions 
+ * @param int $max_recursion_level 
  * @access public
  * @return void
  */
-function register_dependencies($deps = array(), $module = 'site', $specific_version = '1', $allversions = array())
+function register_dependencies($deps = array(), $module = 'site', $specific_version = '1', $allversions = array(), $max_recursion_level = 10)
 {
     if (!$specific_version) {
         echo 'Erreur, car il faut un numero de version';
         return false;
     }
-    $dependancies = get_dependencies($module, $specific_version);
-    if (is_array($dependancies)) {
-        foreach ($dependancies as $dependance => $versions) {
+    // pour ne pas tourner en boucle sur les dependances circulaires
+    $stop_here = 0;
+    if (($max_recursion_level < 0) || (isset($allversions[$module][$specific_version]))) {
+        $stop_here = 1;
+    }
+    if (!$stop_here) {
+        --$max_recursion_level;
+        $dependancies = get_dependencies($module, $specific_version);
+        if (is_array($dependancies)) {
+            foreach ($dependancies as $dependance => $versions) {
+                if (!isset($allversions[$module])) {
+                    $allversions[$module] = '';
+                }
+                $allversions[$module][$specific_version] = '';
+                // recupere recursivement la suite des dependances
+                foreach ($versions as $version => $val) {
+                    $res = register_dependencies($dependancies, $dependance, $version, $allversions, $max_recursion_level);
+                    $dependancies = $res['deps'];
+                    $allversions = $res['allversions'];
+                }
+            }
+        } else {
             if (!isset($allversions[$module])) {
                 $allversions[$module] = '';
             }
             $allversions[$module][$specific_version] = '';
-            // recupere recursivement la suite des dependances
-            foreach ($versions as $version => $val) {
-                $res = register_dependencies($dependancies, $dependance, $version, $allversions);
-                $dependancies = $res['deps'];
-                $allversions = $res['allversions'];
-            }
         }
-    } else {
-        if (!isset($allversions[$module])) {
-            $allversions[$module] = '';
-        }
-        $allversions[$module][$specific_version] = '';
-    }
-    if (!isset($deps[$module])) {
-        $deps[$module][$specific_version] = $dependancies;
-    } else {
-        if (is_array($dependancies)) {
-            if (!isset($deps[$module][$specific_version]) || !is_array($deps[$module][$specific_version])) {
-                $deps[$module][$specific_version] = $dependancies;
-            } else {
-                $deps[$module][$specific_version] = array_merge_recursive($deps[$module][$specific_version], $dependancies);
+        if (!isset($deps[$module])) {
+            $deps[$module][$specific_version] = $dependancies;
+        } else {
+            if (is_array($dependancies)) {
+                if (!isset($deps[$module][$specific_version]) || !is_array($deps[$module][$specific_version])) {
+                    $deps[$module][$specific_version] = $dependancies;
+                } else {
+                    $deps[$module][$specific_version] = array_merge_recursive($deps[$module][$specific_version], $dependancies);
+                }
             }
         }
     }
@@ -211,31 +221,32 @@ function translate_dependencies($arbre, $str = '')
 
 function creer_matrice_candidats($candidats, $evalstr = '', &$matrice = array(), $vrs = array())
 {
-    if (isset($matrice['1ere solution'])) {
-        return $matrice;
-    }
-    $candidats_restants = $candidats;
     if (count($candidats)) {
+        $candidats_restants = $candidats;
         foreach ($candidats as $module => $versions) {
+            unset($candidats_restants[$module]);
             foreach ($versions as $version => $val) {
                 $vrs[$module] = $version;
-                unset($candidats_restants[$module]);
-                creer_matrice_candidats($candidats_restants, $evalstr, $matrice, $vrs);
+                if (count($versions) > 1) {
+                    $vrs = creer_matrice_candidats($candidats_restants, $evalstr, $matrice, $vrs);
+                    if ($vrs === true) {
+                        // court-circuite : la solution est trouvee, pas la peine de chercher davantage... 
+                        return true;
+                    }
+                }
             }
         }
-    } else {
         // court-circuite la creation exhaustive de la matrice de candidats en testant directement la solution
         if (eval("return " . $evalstr . ';')) {
             $matrice = array('1ere solution' => $vrs);
             return true;
         }
-        // pas optimise... on contourne le in_array($vrs, $matrice) en utilisant les cles, mais ca reste pas optimise
-        $key = implode(',', $vrs);
+        $key = http_build_query($vrs);
         if (!isset($matrice[$key])) {
             $matrice[$key] = $vrs;
         }
     }
-    return $matrice;
+    return $vrs;
 }
 
 /**
@@ -426,7 +437,7 @@ function installer_getModuleVersion($module, $check_consistency = false, $get_fr
                 if (isset($config[$module])) {
                     return $config[$module];
                 } else {
-                    if (isset($_GET['debug'])) {
+                    if (isset($_GET['debug']) && !$get_from_installerdatabase) {
                         echo '<br /><strong>Installer notice:</strong> "' . $module . '" has never been installed before<br />';
                     }
                     return false;

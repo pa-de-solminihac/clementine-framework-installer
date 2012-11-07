@@ -33,6 +33,9 @@ if ($is_db_set) {
         // active l'affichage des erreurs
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
+        // force l'encodage
+        $db->query('SET NAMES ' . __SQL_ENCODING__);
+        $db->query('SET CHARACTER SET ' . __SQL_ENCODING__);
     }
 } else {
     // db module required but db not set
