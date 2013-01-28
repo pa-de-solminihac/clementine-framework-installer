@@ -229,22 +229,14 @@ function creer_matrice_candidats($candidats, $evalstr = '', &$matrice = array(),
                 $vrs[$module] = $version;
                 if (count($versions) > 1) {
                     $vrs = creer_matrice_candidats($candidats_restants, $evalstr, $matrice, $vrs);
-                    if ($vrs === true) {
-                        // court-circuite : la solution est trouvee, pas la peine de chercher davantage... 
-                        return true;
-                    }
                 }
             }
         }
-        // court-circuite la creation exhaustive de la matrice de candidats en testant directement la solution
-        if (eval("return " . $evalstr . ';')) {
-            $matrice = array('1ere solution' => $vrs);
-            return true;
-        }
+    }
+    // court-circuite la creation exhaustive de la matrice de candidats en testant directement la solution
+    if (eval("return " . $evalstr . ';')) {
         $key = http_build_query($vrs);
-        if (!isset($matrice[$key])) {
-            $matrice[$key] = $vrs;
-        }
+        $matrice[$key] = $vrs;
     }
     return $vrs;
 }
@@ -530,13 +522,29 @@ function installer_getModuleConfig($ini_path, $specific_version = false)
         }
         // remise en forme des dependances
         if (isset($infos['depends_' . $version_majeure])) {
-            foreach ($infos['depends_' . $version_majeure] as &$module) {
-                $tmp = explode(',', $module);
+            foreach ($infos['depends_' . $version_majeure] as $modulename => &$moduleversions) {
+                // si la version spécifiée est '*', on prend toutes les versions possibles
+                if ($moduleversions == '*') {
+                    $module_depends_file_path = realpath(dirname(__FILE__) . '/tmp/' . $modulename);
+                    if (!$module_depends_file_path) {
+                        global $mode_developpeur;
+                        if (!$mode_developpeur) {
+                            update_module_repository($modulename);
+                        }
+                    }
+                    $latest = (int) installer_getModuleLatestVersion($modulename);
+                    $moduleversions = '';
+                    for ($i = 1; $i < $latest; ++$i) {
+                        $moduleversions .= $i . ',';
+                    }
+                    $moduleversions .= $latest;
+                }
+                $tmp = explode(',', $moduleversions);
                 $tmp_array = array();
                 foreach ($tmp as $val) {
                     $tmp_array[$val] = '';
                 }
-                $module = $tmp_array;
+                $moduleversions = $tmp_array;
             }
             $depends = array();
             $depends[$version_majeure] = $infos['depends_' . $version_majeure];
@@ -568,6 +576,12 @@ function installer_getModuleWeight($module)
     return false;
 }
 
+function isolated_include($file)
+{
+    global $db;
+    return include($file);
+}
+
 /**
  * applyScriptUpgrades : applique toutes les mises a jour scriptees pour passer de la version $previous a la version $final
  *
@@ -588,12 +602,11 @@ function applyScriptUpgrades($module, $previous, $final)
 {
     // passe la connexion a la base de donnees aux scripts inclus
     global $db;
-
     if (isset($_GET['debug'])) {
         if ($previous) {
-            echo "Upgrading <strong>$module</strong> to $final (from $previous)\n";
+            echo "Upgrading <strong>$module</strong> to $final (from $previous)<br />";
         } else {
-            echo "Installing <strong>$module</strong> $final\n";
+            echo "Installing <strong>$module</strong> $final<br />";
         }
     }
     $new_version_candidates = getVersionsCandidates($module, $final, $previous, true);
@@ -610,13 +623,82 @@ function applyScriptUpgrades($module, $previous, $final)
         } else {
             $direct = 0;
         }
-        // echo "    $prev => $version\n";
+        if (isset($_GET['debug'])) {
+            echo "---- $prev => $version<br />";
+        }
         $scriptupgrades = 'tmp/' . $module . '/scripts/versions/' . $version . '/upgrade.php';
         if (is_file($scriptupgrades)) {
+            if (isset($_GET['debug'])) {
+                echo "---- applique $scriptupgrades<br />";
+            }
             $db->beginTransaction();
-            if (!include ($scriptupgrades)) {
-                // $db->rollBack(); // deja gere par les scripts d'upgrade
+            $next = isolated_include($scriptupgrades);
+            // applique les remplacements de fichiers si necessaire
+            $mise_a_jour_fichiers = 0;
+            if (!empty($next['replace'])) {
+                $mise_a_jour_fichiers = 1;
+                echo '<pre>';
+                echo "Mise à jour du code php des modules locaux ($module $prev => $version)<br />";
+                $error = 0;
+                $backups = array();
+                $fichiers_modifies = array();
+                foreach ($next['replace'] as $path => $search_replace) {
+                    // liste tous les fichiers php du dossier (récursivement)
+                    $fichiers = recursive_glob($path, '*.php', 0, -1);
+                    foreach ($fichiers as $fich) {
+                        foreach ($search_replace as $search => $replace) {
+                            $retpreg = preg_replace_infile($fich, $search, $replace);
+                            if (false === $retpreg) {
+                                $error = 1;
+                                break 3;
+                            }
+                            if (!isset($backups[$fich])) {
+                                $backups[$fich] = $retpreg['backup_file'];
+                            }
+                            if ($retpreg['nb_replacements']) {
+                                if (!isset($fichiers_modifies[$fich])) {
+                                    $fichiers_modifies[$fich] = 0;
+                                }
+                                $fichiers_modifies[$fich] += $retpreg['nb_replacements'];
+                            }
+                        }
+                    }
+                }
+                if ($error) {
+                    $restore_error = 0;
+                    echo "<br />=> <strong>erreur</strong><br />";
+                    echo "<br />Restauration des backups <br />";
+                    // restaure les backups
+                    foreach ($backups as $orig_fich => $backup_file) {
+                        if (false === copy($backup_file, $orig_fich)) {
+                            $restore_error = 1;
+                        }
+                    }
+                    if (!$restore_error) {
+                        echo "<br />=> <strong>OK</strong><br />";
+                    } else {
+                        echo "<br />=> <strong>erreur</strong><br />";
+                    }
+                    $next = false;
+                }
+            }
+            if (!empty($next['replace'])) {
+                echo "<br />=> <strong>OK (" . array_sum($fichiers_modifies) . " remplacements effectués, " . count($fichiers_modifies) . " fichiers modifiés)</strong><br />";
+                if (isset($_GET['debug'])) {
+                    echo "<br /><strong>Fichiers modifiés</strong> => nb_remplacements<br />";
+                    echo '<pre>';
+                    print_r($fichiers_modifies);
+                    echo '</pre>';
+                }
+            }
+            if (!$next) {
                 echo '<br /><span class="err">Erreur lors du chargement de ' . $scriptupgrades . ' </span><br />';
+            }
+            if ($mise_a_jour_fichiers) {
+                echo '</pre>';
+            }
+            if (!$next) {
+                // $db->rollBack(); // deja gere par les scripts d'upgrade
                 $ret = $version;
                 break;
             }
@@ -630,7 +712,7 @@ function applyScriptUpgrades($module, $previous, $final)
             array_walk($upgradeto, create_function('&$val', '$val = substr($val, ' . strlen($basepath) . ', -4);'));
             usort($upgradeto, 'strnatcmp');
             // ignorer les upgrades directs vers des version au dela de $final
-            array_walk($upgradeto, create_function('&$val', '$val = (strnatcmp($val, ' . $final . ') > 0) ? 0 : $val;'));
+            array_walk($upgradeto, create_function('&$val', '$val = (strnatcmp("$val", "' . $final . '") > 0) ? 0 : $val;'));
             $tounset = array_keys($upgradeto, 0);
             foreach ($tounset as $keyunset) {
                 unset($upgradeto[$keyunset]);
@@ -639,11 +721,78 @@ function applyScriptUpgrades($module, $previous, $final)
                 $direct = array_pop($upgradeto);
             }
             if ($direct) {
-                // echo "direct  $version => $direct\n";
+                $scriptupgrades_direct = 'tmp/' . $module . '/scripts/versions/' . $version . '/upgrade-to-' . $direct . '.php';
+                if (isset($_GET['debug'])) {
+                    echo "---- applique direct $scriptupgrades_direct<br />";
+                }
                 $db->beginTransaction();
-                if (!include ('tmp/' . $module . '/scripts/versions/' . $version . '/upgrade-to-' . $direct . '.php')) {
-                    $db->rollBack(); // deja gere par les scripts d'upgrade
-                    echo '<br /><span class="err">Erreur lors du chargement de ' . ('tmp/' . $module . '/scripts/versions/' . $version . '/upgrade-to-' . $direct . '.php'). ' </span><br />';
+                $next_direct = isolated_include($scriptupgrades_direct);
+                // applique les remplacements de fichiers si necessaire
+                $mise_a_jour_fichiers_direct = 0;
+                if (!empty($next_direct['replace'])) {
+                    $mise_a_jour_fichiers_direct = 1;
+                    echo '<pre>';
+                    echo "Mise à jour directe du code php des modules locaux ($module $prev => $version)<br />";
+                    $error = 0;
+                    $backups = array();
+                    $fichiers_modifies = array();
+                    foreach ($next_direct['replace'] as $path => $search_replace) {
+                        // liste tous les fichiers php du dossier (récursivement)
+                        $fichiers = recursive_glob($path, '*.php', 0, -1);
+                        foreach ($fichiers as $fich) {
+                            foreach ($search_replace as $search => $replace) {
+                                $retpreg = preg_replace_infile($fich, $search, $replace);
+                                if (false === $retpreg) {
+                                    $error = 1;
+                                    break 3;
+                                }
+                                if (!isset($backups[$fich])) {
+                                    $backups[$fich] = $retpreg['backup_file'];
+                                }
+                                if ($retpreg['nb_replacements']) {
+                                    if (!isset($fichiers_modifies[$fich])) {
+                                        $fichiers_modifies[$fich] = 0;
+                                    }
+                                    $fichiers_modifies[$fich] += $retpreg['nb_replacements'];
+                                }
+                            }
+                        }
+                    }
+                    if ($error) {
+                        $restore_error = 0;
+                        echo "<br />=> <strong>erreur</strong><br />";
+                        echo "<br />Restauration des backups <br />";
+                        // restaure les backups
+                        foreach ($backups as $orig_fich => $backup_file) {
+                            if (false === copy($backup_file, $orig_fich)) {
+                                $restore_error = 1;
+                            }
+                        }
+                        if (!$restore_error) {
+                            echo "<br />=> <strong>OK</strong><br />";
+                        } else {
+                            echo "<br />=> <strong>erreur</strong><br />";
+                        }
+                        $next_direct = false;
+                    }
+                }
+                if (!empty($next_direct['replace'])) {
+                    echo "<br />=> <strong>OK (" . array_sum($fichiers_modifies) . " remplacements effectués, " . count($fichiers_modifies) . " fichiers modifiés)</strong><br />";
+                    if (isset($_GET['debug'])) {
+                        echo "<br /><strong>Fichiers modifiés</strong> => nb_remplacements<br />";
+                        echo '<pre>';
+                        print_r($fichiers_modifies);
+                        echo '</pre>';
+                    }
+                }
+                if (!$next_direct) {
+                    echo '<br /><span class="err">Erreur lors du chargement de ' . ($scriptupgrades_direct). ' </span><br />';
+                }
+                if ($mise_a_jour_fichiers_direct) {
+                    echo '</pre>';
+                }
+                if (!$next_direct) {
+                    // $db->rollBack(); // deja gere par les scripts d'upgrade
                     $ret = $version;
                     break;
                 }
@@ -937,6 +1086,86 @@ function _unzip_file_pclzip($file, $to, $needed_dirs = array())
     return 0;
 }
 
+/**
+ * recursive_glob : recherche récursive de fichiers selon un masque
+ *                  (inspiré de la commande GNU "find")
+ *
+ * @param mixed $path
+ * @param string $pattern
+ * @param int $flags
+ * @param mixed $depth
+ * @access public
+ * @return void
+ */
+function recursive_glob($path, $pattern = '*', $flags = 0, $depth = -1)
+{
+    $matches = array();
+    $folders = array(rtrim($path, DIRECTORY_SEPARATOR));
+    while($folder = array_shift($folders)) {
+        $matches = array_merge($matches, glob($folder.DIRECTORY_SEPARATOR.$pattern, $flags));
+        if($depth != 0) {
+            $moreFolders = glob($folder.DIRECTORY_SEPARATOR.'*', GLOB_ONLYDIR);
+            $depth   = ($depth < -1) ? -1: $depth + count($moreFolders) - 2;
+            $folders = array_merge($folders, $moreFolders);
+        }
+    }
+    return $matches;
+}
 
+/**
+ * preg_replace_infile : chercher remplacer dans un fichier, avec sauvegarde du fichier d'origine
+ *                       (inspiré de la commande GNU "sed -i")
+ *
+ * @param mixed $filepath
+ * @param mixed $pattern
+ * @param mixed $replacement
+ * @param mixed $backup_dir : si fourni, un backup du fichier modifié sera conservé dans ce répertoire
+ *                            le nom du fichier backup reprend le $filepath fourni, encodé en base64
+ * @access public
+ * @return void
+ */
+function preg_replace_infile($filepath, $pattern, $replacement, $backup_dir = 'clementine_installer_default_backup_dir')
+{
+    $content = file_get_contents($filepath);
+    $backup_filename = null;
+    if ($backup_dir) {
+        if ($backup_dir == 'clementine_installer_default_backup_dir') {
+            $backup_dir = __INSTALLER_ROOT__ . DIRECTORY_SEPARATOR . 'save';
+        }
+        if (!empty($_SERVER['REQUEST_TIME'])) {
+            $backup_dir .= DIRECTORY_SEPARATOR . date('Y-m-d.H-i-s', $_SERVER['REQUEST_TIME']);
+        }
+        if (!is_dir($backup_dir)) {
+            mkdir($backup_dir, 0755);
+        }
+        // remplate '=' par '_' pour eviter d'avoir a echapper le nom de fichier...
+        // il faudra faire le remplacement inverse avant de pouvoir faire le base64_decode
+        $backup_filename  = $backup_dir . DIRECTORY_SEPARATOR;
+        $backup_filename .= str_replace('=', '_', base64_encode($filepath));
+    }
+    $count = 0;
+    // changement de $request : le tableau est remplace par un opjet
+    $backup_content = $content;
+    $content = preg_replace($pattern, $replacement, $content, -1, $count);
+    if ($count) {
+        // s'il y a eu des modifs, sauvegarde le fichier avant de les enregistrer (si pas déjà fait)
+        if ($backup_dir && !file_exists($backup_filename)) {
+            if (false === file_put_contents($backup_filename, $backup_content)) {
+                // false : indique qu'une erreur s'est produite (impossible d'ecrire un backup)
+                trigger_error('<br />Impossible de sauver le fichier backup ' . $backup_filename . ' pour ' . $filepath . '<br />');
+                return false;
+            }
+        }
+        if (false === file_put_contents($filepath, $content)) {
+            // false : indique qu'une erreur s'est produite (impossible d'ecrire les modifications)
+            trigger_error('<br />Impossible de sauver le fichier modifié ' . $filename . '<br />');
+            return false;
+        }
+    }
+    return array(
+        'nb_replacements' => $count,
+        'backup_file' => $backup_filename
+    );
+}
 
 ?>

@@ -104,4 +104,6 @@ mb_internal_encoding(__PHP_ENCODING__);
 if (!headers_sent()) {
     header('Content-type: text/html; charset="' . __HTML_ENCODING__ . '"');
 }
+// détermine la racine de l'install
+define('__INSTALLER_ROOT__', realpath(dirname(__FILE__)));
 ?>

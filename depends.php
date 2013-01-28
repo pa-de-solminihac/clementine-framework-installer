@@ -14,7 +14,8 @@ if (CLEMENTINE_INSTALLER_DISABLE || !$db) {
 <body>
     <div id="wrapper">
         <div id="main">
-            <h2>Installation ou mise à jour</h2>
+            <h2>Installation ou mise à jour<br />
+                <a href="../" target="_blank">voir le site &rarr;</a></h2>
             <a href="http://clementine.quai13.com"><img src="logo.jpg" alt="logo clémentine framework" /></a>
             <fieldset>
                 <legend>Aperçu des modifications</legend>
@@ -227,8 +228,14 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
     if (count($premiere_solution)) {
         echo '<br />';
         echo '<span>';
-        echo 'Solution trouvée. ';
+        echo count($solution) . ' solutions trouvées. ';
         echo '</span>';
+        if (isset($_GET['debug'])) {
+            echo '<p>Liste des solutions possibles : </p>';
+            echo '<pre>';
+            print_r($solution);
+            echo '</pre>';
+        }
     }
 
 ?>
