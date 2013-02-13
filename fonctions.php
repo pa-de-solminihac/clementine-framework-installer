@@ -816,7 +816,11 @@ function update_module_repository($module)
     }
     $from = $_SERVER['SERVER_NAME'] . preg_replace('@/install/.*@', '', $_SERVER['REQUEST_URI']); // juste pour anticiper l'impact des mises à jour d'un module, point trop d'indiscrétion
     $from_version = installer_getModuleVersion($module);
-    $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/scripts.zip?from=' . rawurlencode(htmlentities($from)) . '&version=' . rawurlencode(htmlentities($from_version));
+    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+        $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '-scripts/archive/master.zip';
+    } else {
+        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/scripts.zip?from=' . rawurlencode(htmlentities($from)) . '&version=' . rawurlencode(htmlentities($from_version));
+    }
     // recupere le fichier depends.ini par telechargement
     $dst = $path . '/scripts.zip';
     if (!copy($src, $dst)) {
@@ -842,7 +846,11 @@ function update_module_repository($module)
 function maj_installeur_dispo()
 {
     $from = $_SERVER['SERVER_NAME'] . preg_replace('@/install/.*@', '', $_SERVER['REQUEST_URI']); // juste pour anticiper l'impact des mises à jour, point trop d'indiscrétion
-    $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install_latest.txt?from=' . $from;
+    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+        $src = str_replace('//github.com', '//raw.github.com', __CLEMENTINE_REPOSITORY_URL__) . '/clementine-framework-installer/master/install_latest.txt';
+    } else {
+        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install_latest.txt?from=' . $from;
+    }
     $dst = 'install_latest.txt';
     if (!copy($src, $dst)) {
         echo $src;

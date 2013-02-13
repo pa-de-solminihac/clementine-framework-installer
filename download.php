@@ -18,7 +18,11 @@ if (isset($_GET['confirm'])) {
         }
         foreach ($versions_choisies as $module => $version) {
             if (!isset($current_local_modules[$module]) /* || $overrides[$module] != 'local' */) {
-                $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/src/' . $module . '-' . $version . '.zip';
+                if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+                    $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '/archive/' . $version . '.zip';
+                } else {
+                    $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/src/' . $module . '-' . $version . '.zip';
+                }
                 $dst = 'tmp/' . $module . '/' . $module . '-' . $version . '.zip';
                 // cree le dossier destination s'il n'existe pas
                 $path = 'tmp/' . $module;

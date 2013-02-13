@@ -46,7 +46,11 @@ if (isset($_POST['real_update_installer'])) {
         mkdir('../tmp', 0755);
         @chmod('../tmp', 0755);
     }
-    $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install.zip';
+    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+        $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-installer/archive/master.zip';
+    } else {
+        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install.zip';
+    }
     $dst = '../tmp/install.zip';
     $dlerrors = 0;
     if (!copy($src, $dst)) {
