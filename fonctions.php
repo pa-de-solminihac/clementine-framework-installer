@@ -834,6 +834,9 @@ function update_module_repository($module)
                 echo ' : ok';
                 echo "<br />";
             }
+            if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+                rename($path . '/clementine-framework-module-' . $module . '-scripts-master', $path . '/scripts');
+            }
             unlink($dst);
         } else {
             echo $src;
@@ -997,7 +1000,7 @@ function _unzip_file_ziparchive($file, $to, $needed_dirs = array())
     asort($needed_dirs);
     // Create those directories if need be:
     foreach ($needed_dirs as $_dir) {
-        if (!mkdir($_dir, 0755) && ! is_dir($_dir)) { // Only check to see if the Dir exists upon creation failure. Less I/O this way.
+        if (!is_dir($_dir) && !mkdir($_dir, 0755) && !is_dir($_dir)) { // Only check to see if the Dir exists upon creation failure. Less I/O this way.
             return array('mkdir_failed', 'Could not create directory.', $_dir);
         } else {
             @chmod($_dir, 0755);

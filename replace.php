@@ -31,7 +31,12 @@ foreach ($versions_choisies as $module => $new_version) {
                 ++$replaceerrors;
             }
         } else {
-            if (!rename($src . '/' . $module . '/src/' . $module, $dst . '/' . $module)) {
+            if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+                $renamed = rename($src . '/' . $module . '/src/clementine-framework-module-' . $module . '-' . $new_version, $dst . '/' . $module);
+            } else {
+                $renamed = rename($src . '/' . $module . '/src/' . $module, $dst . '/' . $module);
+            }
+            if (!$renamed) {
                 ++$replaceerrors;
             }
         }
