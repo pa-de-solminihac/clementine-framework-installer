@@ -36,6 +36,8 @@ if (ini_get('apc.enabled')) {
 if (is_file('config.php')) {
     include('config.php');
 }
+define('__CLEMENTINE_DEFAULT_REPOSITORY_SSL_URL__', 'https://github.com/pa-de-solminihac');
+define('__CLEMENTINE_DEFAULT_REPOSITORY_URL__', 'http://github.com/pa-de-solminihac');
 if (!defined('__CLEMENTINE_REPOSITORY_URL__')) {
     if (isset($site_config['clementine_installer']) && isset($site_config['clementine_installer']['repository_url'])) {
         define('__CLEMENTINE_REPOSITORY_URL__', $site_config['clementine_installer']['repository_url']);

@@ -61,6 +61,9 @@ if ($db && !count($errors) && $baseconfig_ok) {
         <div id="main">
             <h2>Bienvenue dans l'installeur</h2>
             <a href="http://clementine.quai13.com"><img src="logo.jpg" alt="logo clémentine framework" /></a>
+<?php
+require('repocheck.php');
+?>
             <fieldset>
                 <legend>Vérifications</legend>
 <dl>

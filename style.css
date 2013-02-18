@@ -216,6 +216,14 @@ span {
 .err {
     color: #A00;
 }
+.warning {
+    border: solid orange 1px;
+    font-size: 13px;
+    margin: 2em 0 0;
+    padding: 0 1em;
+    background-color: navajowhite;
+    color: #333;
+}
 dt {
     float: left;
     clear: left;

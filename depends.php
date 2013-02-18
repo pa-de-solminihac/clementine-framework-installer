@@ -17,6 +17,9 @@ if (CLEMENTINE_INSTALLER_DISABLE || !$db) {
             <h2>Installation ou mise à jour<br />
                 <a href="../" target="_blank">voir le site &rarr;</a></h2>
             <a href="http://clementine.quai13.com"><img src="logo.jpg" alt="logo clémentine framework" /></a>
+<?php
+require('repocheck.php');
+?>
             <fieldset>
                 <legend>Aperçu des modifications</legend>
 

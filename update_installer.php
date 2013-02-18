@@ -14,6 +14,9 @@ require('fonctions.php');
         <div id="main">
             <h2>Mise à jour de l'installeur</h2>
             <a href="http://clementine.quai13.com"><img src="logo.jpg" alt="logo clémentine framework" /></a>
+<?php
+require('repocheck.php');
+?>
             <fieldset>
 <?php
 $maj_installeur_dispo = maj_installeur_dispo();
