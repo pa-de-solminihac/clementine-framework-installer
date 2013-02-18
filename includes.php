@@ -42,7 +42,7 @@ if (!defined('__CLEMENTINE_REPOSITORY_URL__')) {
     if (isset($site_config['clementine_installer']) && isset($site_config['clementine_installer']['repository_url'])) {
         define('__CLEMENTINE_REPOSITORY_URL__', $site_config['clementine_installer']['repository_url']);
     } else {
-        define('__CLEMENTINE_REPOSITORY_URL__', 'http://clementine.quai13.com');
+        define('__CLEMENTINE_REPOSITORY_URL__', __CLEMENTINE_DEFAULT_REPOSITORY_SSL_URL__);
     }
 }
 if (!defined('__CLEMENTINE_INSTALLER_NODOWNLOAD__')) {
