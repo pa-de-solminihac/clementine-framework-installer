@@ -81,7 +81,11 @@ if (isset($_POST['real_update_installer'])) {
                 <h4>Remplacement des fichiers</h4>
 <?php
     if (!$unziperrors) {
-        $src = '../tmp/install';
+        if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
+            $src = '../tmp/clementine-framework-installer-master';
+        } else {
+            $src = '../tmp/install';
+        }
         $dst = '../install';
         @chmod($src, 0755);
         unlink_recursive($dst);
