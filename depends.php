@@ -20,7 +20,11 @@ if (CLEMENTINE_INSTALLER_DISABLE || !$db) {
 <?php
 require('repocheck.php');
 ?>
-            <fieldset>
+            <fieldset <?php
+            if (isset($_GET['confirm']) && !isset($_GET['debug'])) {
+                echo 'style="display: none; "';
+            }
+            ?>>
                 <legend>Aperçu des modifications</legend>
 
 <?php
