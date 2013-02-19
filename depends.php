@@ -205,43 +205,45 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
     if (isset($_GET['debug'])) {
         echo "</pre>";
     }
-    if (count($res)) {
-        echo '<span>';
-        echo 'Récupération des méta données terminée. ';
-        echo '</span>';
-    }
-    $dependances = $res['deps'];
-    $allversions = $res['allversions'];
+    if (!empty($res['allversions'])) {
+        if (count($res)) {
+            echo '<span>';
+            echo 'Récupération des méta données terminée. ';
+            echo '</span>';
+        }
+        $dependances = $res['deps'];
+        $allversions = $res['allversions'];
 
-    if (isset($_GET['debug'])) {
-        echo '<p>';
-        echo "Dépendances";
-        echo '<pre>';
-        print_r_array($dependances['site'][1]); // par convention (over configuration) le module du site est dans app/local/site et il est en version 1
-        echo '</pre>';
-        echo '</p>';
-    }
-
-    // traduit l'arbre des dependances en conditions evaluables par PHP
-    $evalstr = translate_dependencies($dependances);
-
-    // cree la table de vérité de ce systeme d'equations et renvoie la première solution valide rencontrée par la même occasion
-    $solution = array();
-    creer_matrice_candidats($allversions, $evalstr, $solution);
-
-    // reduit le jeu de solutions : supprime les modules inutiles et dédoublonne
-    $solution_reduite = reduire_jeu_solutions($solution, $evalstr);
-    $premiere_solution = array_shift($solution_reduite);
-    if (count($premiere_solution)) {
-        echo '<br />';
-        echo '<span>';
-        echo count($solution) . ' solutions trouvées. ';
-        echo '</span>';
         if (isset($_GET['debug'])) {
-            echo '<p>Liste des solutions possibles : </p>';
+            echo '<p>';
+            echo "Dépendances";
             echo '<pre>';
-            print_r($solution);
+            print_r_array($dependances['site'][1]); // par convention (over configuration) le module du site est dans app/local/site et il est en version 1
             echo '</pre>';
+            echo '</p>';
+        }
+
+        // traduit l'arbre des dependances en conditions evaluables par PHP
+        $evalstr = translate_dependencies($dependances);
+
+        // cree la table de vérité de ce systeme d'equations et renvoie la première solution valide rencontrée par la même occasion
+        $solution = array();
+        creer_matrice_candidats($allversions, $evalstr, $solution);
+
+        // reduit le jeu de solutions : supprime les modules inutiles et dédoublonne
+        $solution_reduite = reduire_jeu_solutions($solution, $evalstr);
+        $premiere_solution = array_shift($solution_reduite);
+        if (count($premiere_solution)) {
+            echo '<br />';
+            echo '<span>';
+            echo count($solution) . ' solutions trouvées. ';
+            echo '</span>';
+            if (isset($_GET['debug'])) {
+                echo '<p>Liste des solutions possibles : </p>';
+                echo '<pre>';
+                print_r($solution);
+                echo '</pre>';
+            }
         }
     }
 
@@ -250,7 +252,7 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
 <?php
 
     // Choix de la premiere solution
-    if (is_array($premiere_solution) && count($premiere_solution)) {
+    if (isset($premiere_solution) && is_array($premiere_solution) && count($premiere_solution)) {
 ?>
 <table>
     <tr>
@@ -301,11 +303,21 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
 </table>
 <?php
     } else {
-        echo 'Pas de solution trouvée dans l\'arbre des dépendances. ';
-        if (!isset($_GET['debug'])) {
-            echo 'Il faut chercher pourquoi en <a href="?debug" target="">activant le debug</a> !';
+        if (isset($premiere_solution)) {
+            echo 'Pas de solution trouvée dans l\'arbre des dépendances. ';
+            if (!isset($_GET['debug'])) {
+                echo 'Il faut chercher pourquoi en <a href="?debug" target="">activant le debug</a> !';
+            }
+            die();
+        } else {
+            echo 'Problème de téléchargement rencontré. ';
+            if (!isset($_GET['debug'])) {
+                echo '<br /><br /><div class="boutons">
+                    <a class="prev" href="update.php" target="">Relancer l\'installeur</a>
+                </div>';
+            }
+            die();
         }
-        die();
     }
 }
 

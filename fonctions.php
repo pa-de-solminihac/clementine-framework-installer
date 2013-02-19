@@ -4,6 +4,11 @@ if (CLEMENTINE_INSTALLER_DISABLE) {
     die();
 }
 
+function dlcopy($src, $dst)
+{
+    return copy($src, $dst);
+}
+
 function print_r_ret($mixed = null)
 {
     ob_start();
@@ -86,11 +91,16 @@ function get_dependencies ($module, $specific_version)
     if (!$module_depends_file_path) {
         global $mode_developpeur;
         if (!$mode_developpeur) {
-            update_module_repository($module);
+            if (!update_module_repository($module)) {
+                return false;
+            }
         }
         $module_depends_file_path = realpath(dirname(__FILE__) . '/tmp/' . $module);
     }
     $config = installer_getModuleConfig($module_depends_file_path, $specific_version);
+    if (false === $config) {
+        return false;
+    }
     if (is_array($config)) {
         if (isset($config['depends_' . $specific_version]) && is_array($config['depends_' . $specific_version]) && count($config['depends_' . $specific_version])) {
             $deps = array();
@@ -114,7 +124,7 @@ function get_dependencies ($module, $specific_version)
             }
         }
     }
-    return false;
+    return true;
 }
 
 /**
@@ -142,6 +152,9 @@ function register_dependencies($deps = array(), $module = 'site', $specific_vers
     if (!$stop_here) {
         --$max_recursion_level;
         $dependancies = get_dependencies($module, $specific_version);
+        if (false === $dependancies) {
+            return false;
+        }
         if (is_array($dependancies)) {
             foreach ($dependancies as $dependance => $versions) {
                 if (!isset($allversions[$module])) {
@@ -529,7 +542,9 @@ function installer_getModuleConfig($ini_path, $specific_version = false)
                     if (!$module_depends_file_path) {
                         global $mode_developpeur;
                         if (!$mode_developpeur) {
-                            update_module_repository($modulename);
+                            if (!update_module_repository($modulename)) {
+                                return false;
+                            }
                         }
                     }
                     $latest = (int) installer_getModuleLatestVersion($modulename);
@@ -569,6 +584,9 @@ function installer_getModuleWeight($module)
     foreach ($types as $type) {
         $filepath = realpath(dirname(__FILE__) . '/../app/' . $type . '/' . $module);
         $config_ini = installer_getModuleConfig($filepath);
+        if (false === $config_ini) {
+            return false;
+        }
         if (is_array($config_ini) && isset($config_ini['weight'])) {
             return $config_ini['weight'];
         }
@@ -823,10 +841,11 @@ function update_module_repository($module)
     }
     // recupere le fichier depends.ini par telechargement
     $dst = $path . '/scripts.zip';
-    if (!copy($src, $dst)) {
+    if (!dlcopy($src, $dst)) {
         echo $src;
         echo ' : erreur';
         echo "<br />";
+        return false;
     } else {
         if (!unzip($dst, $path)) {
             if (isset($_GET['debug'])) {
@@ -842,8 +861,10 @@ function update_module_repository($module)
             echo $src;
             echo ' : erreur';
             echo "<br />";
+            return false;
         }
     }
+    return true;
 }
 
 function maj_installeur_dispo()
@@ -855,7 +876,7 @@ function maj_installeur_dispo()
         $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install_latest.txt?from=' . $from;
     }
     $dst = 'install_latest.txt';
-    if (!copy($src, $dst)) {
+    if (!dlcopy($src, $dst)) {
         echo $src;
         echo ' : erreur';
         echo "<br />";

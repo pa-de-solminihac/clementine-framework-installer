@@ -49,7 +49,7 @@ if (strlen(__CLEMENTINE_REPOSITORY_URL__) && !$mode_developpeur) {
             mkdir($path . '/etc', 0755);
             @chmod($path . '/etc', 0755);
         }
-        if (!copy($src, $path . '/etc/module.ini')) {
+        if (!dlcopy($src, $path . '/etc/module.ini')) {
             echo $src;
             echo ' : erreur';
             echo "<br />";
