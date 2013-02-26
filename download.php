@@ -109,6 +109,7 @@ $modules_list = array_keys($versions_choisies);
 
 
 ?>
+                </div>
             </fieldset>
 <?php
 

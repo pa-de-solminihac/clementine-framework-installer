@@ -4,6 +4,7 @@ body {
     padding: 0;
     border: 0;
     height: 100%;
+    font-size: 14px;
 }
 body {
     font-family: "Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif;
@@ -44,7 +45,7 @@ a img {
     border: none;
 }
 pre {
-    width: 545px;
+    /*width: 545px;*/
     border: 1px solid #888;
     border-radius: 0.3em;
     padding: 1em;
@@ -92,7 +93,7 @@ h4 {
     font-size: 16px;
 }
 h2,
-h2 a {
+a {
     color: #777;
 }
 h2 a {
@@ -236,4 +237,41 @@ dd {
     font-size: 13px;
     width: 150px;
     display: inline-block;
+}
+.directive {
+    padding: 1em;
+    font-size: 16px;
+}
+.directive:before {
+    content: " → ";
+    vertical-align: text-top;
+}
+.remarque {
+    padding: 1em;
+    background: #FFF;
+    line-height: 1.4em;
+    text-align: justify;
+    border-radius: 0.3em;
+    border: 1px solid #888;
+}
+.remarque:before {
+    content: " « ";
+}
+.remarque:after {
+    content: " » ";
+}
+.remarque:first-line {
+    font-weight: bold;
+}
+.deplie,
+.replie {
+    cursor: pointer;
+}
+.deplie:after {
+    font-family: Courier New;
+    content: " + ";
+}
+.replie:after {
+    font-family: Courier New;
+    content: " - ";
 }

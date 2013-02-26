@@ -37,6 +37,14 @@ if (!is_dir('tmp')) {
 if ($errfile) {
     $errors['chmod'] = 'Could not manage files properly';
 }
+// site's module.ini
+if (!is_file('../app/local/site/etc/module.ini')) {
+    $errors['module_ini'] = 'Missing module.ini file';
+}
+// site's config.ini
+if (!is_file('../app/local/site/etc/config.ini')) {
+    $errors['config_ini'] = 'Missing config.ini file';
+}
 if (!$db) {
     $errors['db_set'] = 'Missing database credentials';
 }
@@ -49,12 +57,63 @@ if ($db && !count($errors) && $baseconfig_ok) {
     die();
 }
 
-?><!DOCTYPE html>
+// code php des fichiers ini d'exemple
+$exemple_module_ini = <<<INI
+
+version=1.0
+weight=0.9
+
+; dependances de la version 1.* du module site
+; module core version 3
+; module db version 1
+[depends_1]
+core=3 ; module core version 3
+db=1   ; module db version 1
+
+
+INI;
+
+$exemple_config_ini = <<<INI
+
+[clementine_global]
+site_name=New site
+email_prod=your@email.com
+email_dev=your@email.com
+
+[clementine_installer]
+enabled=1
+allowed_ip=<ip1>,<ip2>
+
+[clementine_db]
+host=localhost
+name=dbname
+user=root
+pass=
+
+
+INI;
+
+if (!$baseconfig_ok) {
+    $errors[] = 'Base Config';
+}
+
+?>
+<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>Installation de Clémentine</title>
     <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+<script type="text/javascript" charset="utf-8">
+function toggle (E1) {
+    var elt = document.getElementById(E1);
+    var E1_legend = document.getElementById(E1 + '_legend');
+    if (E1_legend.className=='deplie' || E1_legend.className=='replie') {
+        elt.style.display = (elt.style.display == 'block' ? 'none' : 'block');
+        E1_legend.className = (elt.style.display == 'block' ? 'replie' : 'deplie');
+    }
+}
+</script>
 </head>
 <body>
     <div id="wrapper">
@@ -63,7 +122,85 @@ if ($db && !count($errors) && $baseconfig_ok) {
             <a href="http://clementine.quai13.com"><img src="logo.jpg" alt="logo clémentine framework" /></a>
 <?php
 require('repocheck.php');
+if (!count($errors)) {
 ?>
+                <p>
+                    <span class="ok">Les vérifications sont bien passées. </span>
+                </p>
+
+            </fieldset>
+            <br />
+
+            <form action="" method="post" accept-charset="utf-8">
+                <div class="boutons">
+                    <a class="prev" href="../">Retour au site</a>
+                    <input class="next" type="submit" value="Installer ou mettre à jour" />
+                </div>
+            </form>
+<?php
+} else {
+?>
+            <fieldset>
+                <legend id="presentation_legend" class="<?php echo $baseconfig_ok ? 'deplie' : 'replie'; ?>" onclick="toggle('presentation');">Présentation</legend>
+                <div id="presentation" style="display: <?php echo $baseconfig_ok ? 'none' : 'block'; ?>">
+                    <p>
+                        Clémentine est un framework basé sur des modules. <br />
+                        <br />
+                        On distingue <strong>2 types de modules</strong> :<br />
+<pre>
+/app/<em>share</em> : modules partagés, importés par l'installeur
+/app/<em>local</em> : modules locaux, qui contiendront les fichiers du site
+</pre>
+                    </p>
+                    <p class="remarque">
+                       Remarque<br />
+                       On ne modifiera jamais les fichiers d'un module <em>share</em> : on les surchargera dans les modules locaux.
+                    </p>
+                        <br />
+                    <h3 id="exemple">Créer un nouveau site</h3>
+                    <p>
+                        Pour contenir les fichiers de notre site, on va créer un nouveau module dans /app/<em>local</em>/<strong>site</strong>. 
+                        C'est très simple, on va juste créer 2 fichiers :
+<pre>
+<em>module.ini</em> : présente le module au framework
+<em>config.ini</em> : configuration du module
+</pre>
+                    </p>
+                    <h4>Fichier module.ini</h4>
+                    <p>
+                        Notre module <em>site</em> a besoin d'au moins 2 modules partagé : <br />
+<pre>
+<em>core</em> : le coeur de Clémentine.
+<em>db</em>   : le module d'accès à la base de données.
+</pre>
+                    </p>
+                    <p>
+                        On va présenter au framework notre module <em>site</em>, qui dépend de <em>core</em> et <em>db</em> : 
+                    </p>
+                    <div style="border: 1px solid #000000">
+                        <p style="border-bottom: 1px dotted #000000; margin: 0; padding: 0.2em; text-indent: 1em;">
+                            Fichier <strong>/app/local/site/etc/module.ini</strong>
+                        </p>
+                        <pre style="background-color: #CCCCCC; margin: 10px; padding: 0.5em; border: 1px outset #000000"><?php echo htmlentities($exemple_module_ini); ?></pre>
+                    </div>
+                    <h4>Fichier config.ini</h4>
+                    <p>
+                        Par ailleurs, le site a besoin d'un minimum de configuration, pour se connecter à la base de donnés par exemple :
+                    </p>
+                    <div style="border: 1px solid #000000">
+                        <p style="border-bottom: 1px dotted #000000; margin: 0; padding: 0.2em; text-indent: 1em;">
+                            Fichier <strong>/app/local/site/etc/config.ini</strong>
+                        </p>
+                        <pre style="background-color: #CCCCCC; margin: 10px; padding: 0.5em; border: 1px outset #000000"><?php echo htmlentities($exemple_config_ini); ?></pre>
+                    </div>
+                    <p>
+                        <br />
+                        <strong class="directive">Créez <em>config.ini</em> et <em>module.ini</em> et <a href="">rafraîchissez la page</a></strong>
+                    </p>
+                    
+                </div>
+            </fieldset>
+            <br />
             <fieldset>
                 <legend>Vérifications</legend>
 <dl>
@@ -86,12 +223,24 @@ if (isset($errors['chmod'])) {
 } else {
     echo '<dd class="ok">ok</dd>';
 }
+echo '<dt>Site module : module.ini</dt>';
+if (isset($errors['module_ini'])) {
+    echo "<dd class='err'>Fichier module.ini manquant.</dd>";
+} else {
+    echo '<dd class="ok">ok</dd>';
+}
+echo '<dt>Site module : config.ini</dt>';
+if (isset($errors['config_ini'])) {
+    echo "<dd class='err'>Fichier config.ini manquant.</dd>";
+} else {
+    echo '<dd class="ok">ok</dd>';
+}
 echo '<dt>Database credentials</dt>';
 if (!$db) {
     if ($is_db_set) {
         if (count($dberrors)) {
             foreach ($dberrors as $key => $err) {
-                echo "<dd class='err'><p>" . $err . "</p></dd>";
+                echo "<dd class='err'>" . $err . "</dd>";
             }
         } else {
             echo "<dd class='err'><p>Les informations de connexion à la base de donnees sont incorrectes. </p></dd>";
@@ -105,67 +254,6 @@ if (!$db) {
 ?>
 </dl>
 <div class="spacer"></div>
-<?php
-
-// code php du fichier module d'exemple
-$exemple_module_ini = <<<INI
-
-version=1.0
-weight=0.9
-
-; dependances de la version 1.* du module site
-[depends_1]
-core=1
-cron=1
-fonctions=1
-
-INI;
-
-if (!$baseconfig_ok) {
-    $errors[] = 'Base Config';
-}
-
-if (!count($errors)) {
-?>
-                <p>
-                    <span class="ok">Les vérifications sont bien passées. </span>
-                </p>
-
-            </fieldset>
-            <br />
-
-            <form action="" method="post" accept-charset="utf-8">
-                <div class="boutons">
-                    <a class="prev" href="../">Retour au site</a>
-                    <input class="next" type="submit" value="Installer ou mettre à jour" />
-                </div>
-            </form>
-<?php
-} else {
-    if (!$baseconfig_ok) {
-?>
-            <h3 id="exemple">Création du module <em>site</em></h3>
-            <p>
-            Avant de procéder à l'installation, vous devez créer le fichier : <br /><strong>app/local/site/etc/module.ini</strong>
-            </p>
-            <p>
-            Vous pouvez vous inspirer du modèle ci-dessous :
-            </p>
-            <div style="border: 1px solid #000000">
-                <p style="border-bottom: 1px dotted #000000; margin: 0; padding: 0.2em; text-indent: 1em;">
-                    <strong>Exemple de fichier app/local/site/etc/module.ini</strong>
-                </p>
-                <pre style="background-color: #CCCCCC; margin: 10px; padding: 0.5em; border: 1px outset #000000"><?php echo $exemple_module_ini; ?></pre>
-            </div>
-            <p>
-            Ce fichier est présent dans chaque module, et contient des informations importantes comme sa <em>version</em>, son <em>poids</em>, et les <em>autres modules</em> dont il dépend. 
-            </p>
-            <p>
-            Ces modules seront alors installés automatiquement.
-            </p>
-<?php 
-    }
-?>
             </fieldset>
             <br />
 

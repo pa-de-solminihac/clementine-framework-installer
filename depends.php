@@ -10,6 +10,16 @@ if (CLEMENTINE_INSTALLER_DISABLE || !$db) {
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>Installation de Clémentine</title>
     <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+<script type="text/javascript" charset="utf-8">
+function toggle (E1) {
+    var elt = document.getElementById(E1);
+    var E1_legend = document.getElementById(E1 + '_legend');
+    if (E1_legend.className=='deplie' || E1_legend.className=='replie') {
+        elt.style.display = (elt.style.display == 'block' ? 'none' : 'block');
+        E1_legend.className = (elt.style.display == 'block' ? 'replie' : 'deplie');
+    }
+}
+</script>
 </head>
 <body>
     <div id="wrapper">
@@ -20,12 +30,18 @@ if (CLEMENTINE_INSTALLER_DISABLE || !$db) {
 <?php
 require('repocheck.php');
 ?>
-            <fieldset <?php
-            if (isset($_GET['confirm']) && !isset($_GET['debug'])) {
-                echo 'style="display: none; "';
-            }
-            ?>>
-                <legend>Aperçu des modifications</legend>
+            <fieldset>
+                <legend id="apercu_legend" class="<?php
+if (isset($_GET['confirm']) && !isset($_GET['debug'])) {
+    echo 'deplie';
+}
+                ?>" onclick="toggle('apercu');">Aperçu des modifications</legend>
+                <div id="apercu" style="display: <?php 
+if (isset($_GET['confirm']) && !isset($_GET['debug'])) {
+    echo 'none';
+}
+                ?>">
+
 
 <?php
 

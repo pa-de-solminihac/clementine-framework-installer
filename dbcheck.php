@@ -12,7 +12,7 @@ if ($is_db_set) {
         $db = new PDO('mysql:host=' . $site_config['clementine_db']['host'], $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
     } catch (PDOException $e) {
         $db = null;
-        $dberrors[] = 'Connection failed : please double check database credentials in <strong>app/local/site/etc/config.ini</strong>';
+        $dberrors[] = 'Check credentials in <strong>/app/local/site/etc/config.ini</strong>';
     }
     // teste si la base existe
     if ($db) {
@@ -26,7 +26,7 @@ if ($is_db_set) {
                 $dberrors[] = 'Installer upgrade failed (.ini to database)';
             }
         } catch (PDOException $e) {
-            $dberrors[] = 'Connection successful but database does not exists';
+            $dberrors[] = 'Database does not exists';
         }
     }
     if ($db) {
