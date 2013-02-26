@@ -67,8 +67,8 @@ weight=0.9
 ; module core version 3
 ; module db version 1
 [depends_1]
-core=3 ; module core version 3
-db=1   ; module db version 1
+core=3
+db=1
 
 
 INI;
