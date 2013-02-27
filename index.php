@@ -82,7 +82,7 @@ email_dev=your@email.com
 
 [clementine_installer]
 enabled=1
-allowed_ip=<ip1>,<ip2>
+allowed_ip=
 
 [clementine_db]
 host=localhost
