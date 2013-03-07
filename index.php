@@ -13,7 +13,11 @@ if (version_compare(PHP_VERSION, '5.0.0', '<')) {
 }
 // safe_mode disabled
 if (ini_get('safe_mode')) {
-    $errors['safe_mode'] = 'PHP safe_mode is deprecated, an MUST be disabled for this installer to run properly';
+    $errors['safe_mode'] = 'PHP safe_mode is deprecated and MUST be disabled for this installer to run properly';
+}
+// openssl PHP extension
+if (!extension_loaded('openssl')) {
+    $errors['openssl'] = 'openssl PHP extension required';
 }
 // file management
 $errfile = 0;
@@ -49,7 +53,13 @@ if (!$db) {
     $errors['db_set'] = 'Missing database credentials';
 }
 $config = installer_getModuleConfig('../app/local/site');
-if (is_array($config) && isset($config['version']) && isset($config['weight']) && isset($config['depends_' . (int) $config['version']]) && isset($config['depends_' . (int) $config['version']][(int) $config['version']])) {
+if (is_array($config) 
+    && isset($config['version']) 
+    && isset($config['weight']) 
+    && isset($config['depends_' . (int) $config['version']]) 
+    && isset($config['depends_' . (int) $config['version']][(int) $config['version']])
+    && !isset($errors['config_ini'])
+) {
     $baseconfig_ok = 1;
 }
 if ($db && !count($errors) && $baseconfig_ok) {
@@ -214,6 +224,12 @@ if (isset($errors['php5'])) {
 echo '<dt>PHP safe_mode</dt>';
 if (isset($errors['safe_mode'])) {
     echo "<dd class='err'><p>Vous devez désactiver le safe_mode (qui est de toute facon OBSOLÈTE ;)). </p></dd>";
+} else {
+    echo '<dd class="ok">ok</dd>';
+}
+echo '<dt>openssl PHP extension</dt>';
+if (isset($errors['openssl'])) {
+    echo "<dd class='err'><p>Vous devez activer l'extension PHP openssl. </p></dd>";
 } else {
     echo '<dd class="ok">ok</dd>';
 }
