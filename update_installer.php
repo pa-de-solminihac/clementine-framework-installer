@@ -56,7 +56,7 @@ if (isset($_POST['real_update_installer'])) {
     }
     $dst = '../tmp/install.zip';
     $dlerrors = 0;
-    if (!copy($src, $dst)) {
+    if (!dlcopy($src, $dst)) {
         ++$dlerrors;
         echo 'Erreur de téléchargement de ' . $src;
     } else {

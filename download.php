@@ -30,7 +30,7 @@ if (isset($_GET['confirm'])) {
                     mkdir($path, 0755);
                     @chmod($path, 0755);
                 }
-                if (!copy($src, $dst)) {
+                if (!dlcopy($src, $dst)) {
                     ++$dlerrors;
                     echo $src;
                     echo ' : erreur';

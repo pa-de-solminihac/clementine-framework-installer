@@ -6,7 +6,20 @@ if (CLEMENTINE_INSTALLER_DISABLE) {
 
 function dlcopy($src, $dst)
 {
-    return copy($src, $dst);
+    $ret = false;
+    if (!ini_get('allow_url_fopen')) {
+        $ch = curl_init($src);
+        $fp = fopen($dst, "w");
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        $ret = curl_exec($ch);
+        curl_close($ch);
+        fclose($fp);
+    } else {
+        $ret = copy($src, $dst);
+    }
+    return $ret;
 }
 
 function print_r_ret($mixed = null)
