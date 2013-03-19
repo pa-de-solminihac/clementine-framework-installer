@@ -7,7 +7,7 @@ if (CLEMENTINE_INSTALLER_DISABLE) {
 function dlcopy($src, $dst)
 {
     $ret = false;
-    if (!ini_get('allow_url_fopen')) {
+    if (!ini_get('allow_url_fopen') && 1 === preg_match('/(ftp|https?):\/\//i', $src)) {
         $ch = curl_init($src);
         $fp = fopen($dst, "w");
         curl_setopt($ch, CURLOPT_FILE, $fp);
