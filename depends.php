@@ -152,6 +152,7 @@ foreach ($config_from_fs['local'] as $module => $version) {
         }
     }
 }
+ksort($local_module_upgrades);
 if (isset($_GET['debug']) && count($local_module_upgrades)) {
     echo '<strong>Local module upgrades</strong>';
     echo '<pre>';
