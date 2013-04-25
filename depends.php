@@ -60,7 +60,7 @@ if ($db) {
         $commande  = __CLEMENTINE_INSTALLER_PATH_TO_MYSQLDUMP__;
         $commande .= ' --defaults-file=' . realpath(dirname(__FILE__)) . '/tmp/.my.cnf';
         $commande .= ' -u ' . escapeshellcmd($site_config['clementine_db']['user']); // pas de flag -R car il demande trop de privileges
-        $commande .= ' ' . escapeshellcmd($site_config['clementine_db']['name']);
+        $commande .= ' -B ' . escapeshellcmd($site_config['clementine_db']['name']); // flag -B pour drop et re-create database
         $commande .= ' --result-file=' . realpath(dirname(__FILE__)) . '/save/dump.sql';
         $tab_retours = array ();
         exec($commande, $tab_retours, $retour);
