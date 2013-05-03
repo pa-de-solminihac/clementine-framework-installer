@@ -49,11 +49,7 @@ if (isset($_POST['real_update_installer'])) {
         mkdir('../tmp', 0755);
         @chmod('../tmp', 0755);
     }
-    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-        $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-installer/archive/master.zip';
-    } else {
-        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install.zip';
-    }
+    $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-installer/archive/master.zip';
     $dst = '../tmp/install.zip';
     $dlerrors = 0;
     if (!dlcopy($src, $dst)) {
@@ -81,11 +77,7 @@ if (isset($_POST['real_update_installer'])) {
                 <h4>Remplacement des fichiers</h4>
 <?php
     if (!$unziperrors) {
-        if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-            $src = '../tmp/clementine-framework-installer-master';
-        } else {
-            $src = '../tmp/install';
-        }
+        $src = '../tmp/clementine-framework-installer-master';
         $dst = '../install';
         @chmod($src, 0755);
         unlink_recursive($dst);

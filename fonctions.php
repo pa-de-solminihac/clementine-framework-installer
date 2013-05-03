@@ -847,11 +847,7 @@ function update_module_repository($module)
     }
     $from = $_SERVER['SERVER_NAME'] . preg_replace('@/install/.*@', '', $_SERVER['REQUEST_URI']); // juste pour anticiper l'impact des mises à jour d'un module, point trop d'indiscrétion
     $from_version = installer_getModuleVersion($module);
-    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-        $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '-scripts/archive/master.zip';
-    } else {
-        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/scripts.zip?from=' . rawurlencode(htmlentities($from)) . '&version=' . rawurlencode(htmlentities($from_version));
-    }
+    $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '-scripts/archive/master.zip';
     // recupere le fichier depends.ini par telechargement
     $dst = $path . '/scripts.zip';
     if (!dlcopy($src, $dst)) {
@@ -866,9 +862,7 @@ function update_module_repository($module)
                 echo ' : ok';
                 echo "<br />";
             }
-            if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-                rename($path . '/clementine-framework-module-' . $module . '-scripts-master', $path . '/scripts');
-            }
+            rename($path . '/clementine-framework-module-' . $module . '-scripts-master', $path . '/scripts');
             unlink($dst);
         } else {
             echo $src;
@@ -883,11 +877,7 @@ function update_module_repository($module)
 function maj_installeur_dispo()
 {
     $from = $_SERVER['SERVER_NAME'] . preg_replace('@/install/.*@', '', $_SERVER['REQUEST_URI']); // juste pour anticiper l'impact des mises à jour, point trop d'indiscrétion
-    if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-        $src = str_replace('//github.com', '//raw.github.com', __CLEMENTINE_REPOSITORY_URL__) . '/clementine-framework-installer/master/install_latest.txt';
-    } else {
-        $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/install_latest.txt?from=' . $from;
-    }
+    $src = str_replace('//github.com', '//raw.github.com', __CLEMENTINE_REPOSITORY_URL__) . '/clementine-framework-installer/master/install_latest.txt';
     $dst = 'install_latest.txt';
     if (!dlcopy($src, $dst)) {
         echo $src;

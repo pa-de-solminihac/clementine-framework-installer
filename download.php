@@ -18,11 +18,7 @@ if (isset($_GET['confirm'])) {
         }
         foreach ($versions_choisies as $module => $version) {
             if (!isset($current_local_modules[$module]) /* || $overrides[$module] != 'local' */) {
-                if (strpos(__CLEMENTINE_REPOSITORY_URL__, 'github.com')) {
-                    $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '/archive/' . $version . '.zip';
-                } else {
-                    $src = __CLEMENTINE_REPOSITORY_URL__ . '/modules/' . $module . '/repository/src/' . $module . '-' . $version . '.zip';
-                }
+                $src = __CLEMENTINE_REPOSITORY_URL__ . '/clementine-framework-module-' . $module . '/archive/' . $version . '.zip';
                 $dst = 'tmp/' . $module . '/' . $module . '-' . $version . '.zip';
                 // cree le dossier destination s'il n'existe pas
                 $path = 'tmp/' . $module;
@@ -49,38 +45,40 @@ if (isset($_GET['confirm'])) {
         }
 
         // Extraction
-        if (isset($_GET['debug'])) {
-            echo "Décompression";
-            echo "<pre>";
-        }
-        foreach ($versions_choisies as $module => $version) {
-            if (!isset($current_local_modules[$module]) /* || $overrides[$module] != 'local' */) {
-                $src = 'tmp/' . $module . '/' . $module . '-' . $version . '.zip';
-                $dst = 'tmp/' . $module . '/src';
-                // nettoie le dossier destination avant unzip
-                if (!is_dir($dst)) {
-                    mkdir($dst, 0755);
-                    @chmod($dst, 0755);
-                } else {
-                    unlink_recursive($dst . '/' . $module);
-                }
-                if (!unzip($src, $dst)) {
-                    if (isset($_GET['debug'])) {
-                        echo 'Unzip ' . $src . ' to ' . $dst;
-                        echo ' : ok';
+        if (!$dlerrors) {
+            if (isset($_GET['debug'])) {
+                echo "Décompression";
+                echo "<pre>";
+            }
+            foreach ($versions_choisies as $module => $version) {
+                if (!isset($current_local_modules[$module]) /* || $overrides[$module] != 'local' */) {
+                    $src = 'tmp/' . $module . '/' . $module . '-' . $version . '.zip';
+                    $dst = 'tmp/' . $module . '/src';
+                    // nettoie le dossier destination avant unzip
+                    if (!is_dir($dst)) {
+                        mkdir($dst, 0755);
+                        @chmod($dst, 0755);
+                    } else {
+                        unlink_recursive($dst . '/' . $module);
+                    }
+                    if (!unzip($src, $dst)) {
+                        if (isset($_GET['debug'])) {
+                            echo 'Unzip ' . $src . ' to ' . $dst;
+                            echo ' : ok';
+                            echo "<br />";
+                        }
+                        unlink($src);
+                    } else {
+                        ++$unziperrors;
+                        echo 'Unzip ' . $src;
+                        echo ' : erreur';
                         echo "<br />";
                     }
-                    unlink($src);
-                } else {
-                    ++$unziperrors;
-                    echo 'Unzip ' . $src;
-                    echo ' : erreur';
-                    echo "<br />";
                 }
             }
-        }
-        if (isset($_GET['debug'])) {
-            echo "</pre>";
+            if (isset($_GET['debug'])) {
+                echo "</pre>";
+            }
         }
 
         if ($dlerrors || $unziperrors) {
@@ -114,7 +112,7 @@ $modules_list = array_keys($versions_choisies);
 <?php
 
 // appelle l'etape suivante
-if (isset($_GET['confirm'])) {
+if (!($dlerrors || $unziperrors) && isset($_GET['confirm'])) {
 ?>
             <br />
             <fieldset>
