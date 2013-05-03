@@ -19,6 +19,7 @@ function dlcopy($src, $dst)
     } else {
         $ret = copy($src, $dst);
     }
+    @chmod($dst, 0755);
     return $ret;
 }
 
