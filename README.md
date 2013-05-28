@@ -27,6 +27,11 @@ git pull
 
 Devtools, description
 ---
+* update_repository.sh
+* create_package.sh
+* create_installer.sh
+* create_release.sh
+
 
 Troubleshooting
 ---
