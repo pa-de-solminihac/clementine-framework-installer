@@ -25,7 +25,7 @@ Devtools, description
 Troubleshooting
 ---
 
-***Comment supprimer une version d'un module publiée par erreur ?***
+***Comment supprimer une version __N.m__ d'un module __monmodule__ publiée par erreur ?***
 ```bash
 cd modules/monmodule/trunk
 # corriger le numero de version dans etc/module.ini
