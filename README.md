@@ -18,6 +18,12 @@ Publier une nouvelle version d'un module, mises à jour scriptées
 
 Mettre à jour le dépot
 ---
+```bash
+# se connecter en ssh au depot
+cd devtools
+git pull
+./update_repository.sh
+```
 
 Devtools, description
 ---
@@ -38,3 +44,4 @@ git push
 git tag -d N.m
 git push origin :refs/tags/N.m
 ```
+Puis il faut mettre à jour le dépot pour qu'il prenne en compte la modif.
