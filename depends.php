@@ -56,6 +56,10 @@ if ($db) {
         @chmod('tmp/.my.cnf', 0600);
         $_my_cnf = array('client' => array('password' => $site_config['clementine_db']['pass']));
         write_ini_file($_my_cnf, 'tmp/.my.cnf', null, 1);
+        if (!is_dir('save')) {
+            mkdir('save', 0755);
+            @chmod('save', 0755);
+        }
         $retour = 0;
         $commande  = __CLEMENTINE_INSTALLER_PATH_TO_MYSQLDUMP__;
         $commande .= ' --defaults-file=' . realpath(dirname(__FILE__)) . '/tmp/.my.cnf';
@@ -329,9 +333,14 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
         } else {
             echo 'Problème de téléchargement rencontré. ';
             if (!isset($_GET['debug'])) {
-                echo '<br /><br /><div class="boutons">
-                    <a class="prev" href="update.php" target="">Relancer l\'installeur</a>
-                </div>';
+                echo '<br /><br />
+                    <div class="boutons">
+                        <a class="prev" href="update.php" target="">Relancer l\'installeur</a>
+                    </div>
+                    <form class="formbas" action="update_installer.php" method="post" accept-charset="utf-8">
+                        <input type="submit" class="prev horsubmit" name="update_installer" value="Mise à jour de l\'installeur" />
+                    </form>';
+
             }
             die();
         }
