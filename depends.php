@@ -324,7 +324,7 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
 </table>
 <?php
     } else {
-        if (isset($premiere_solution)) {
+        if (!isset($premiere_solution)) {
             echo 'Pas de solution trouvée dans l\'arbre des dépendances. ';
             if (!isset($_GET['debug'])) {
                 echo 'Il faut chercher pourquoi en <a href="?debug" target="">activant le debug</a> !';
