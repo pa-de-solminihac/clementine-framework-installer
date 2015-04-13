@@ -16,6 +16,38 @@ Publier un nouveau module
 Publier une nouvelle version d'un module, mises à jour scriptées
 ---
 
+On publier les migrations de la base de données dans des fichiers de la forme suivante :
+`app/local/site/upgrades/YYYY-mm-dd.php`
+
+```php
+<?php
+/**
+ * Script non interactif de mise à jour
+ */
+
+// deja appele par l'installer
+// $db->beginTransaction();
+
+$requetes = array (
+    'UPDATE ...',
+    'UPDATE 2 ...',
+);
+// execute les requetes une par une et rollback au moindre plantage
+foreach ($requetes as $sql) {
+    if (!$db->prepare($sql)->execute()) {
+        $db->rollBack();
+        return false;
+    }
+}
+
+// deja appele par l'installer
+// $db->commit();
+
+return true;
+```
+
+On lance ensuite l'installeur, qui appliquera les fichiers de mise à jour dans l'ordre alphabétique (donc chronologique selon le nom de fichiers adopté ici).
+
 Mettre à jour le dépot
 ---
 ```bash
