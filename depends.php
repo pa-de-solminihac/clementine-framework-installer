@@ -56,12 +56,18 @@ if ($db) {
         @chmod('tmp/.my.cnf', 0600);
         $_my_cnf = array(
             'client' => array(
-                'host' => $site_config['clementine_db']['host'],
-                'port' => $site_config['clementine_db']['port'],
-                'user' => $site_config['clementine_db']['user'],
                 'password' => $site_config['clementine_db']['pass'],
             )
         );
+        if (!empty($site_config['clementine_db']['host'])) {
+            $_my_cnf['client']['host'] = $site_config['clementine_db']['host'];
+        }
+        if (!empty($site_config['clementine_db']['user'])) {
+            $_my_cnf['client']['user'] = $site_config['clementine_db']['user'];
+        }
+        if (!empty($site_config['clementine_db']['port'])) {
+            $_my_cnf['client']['port'] = $site_config['clementine_db']['port'];
+        }
         write_ini_file($_my_cnf, 'tmp/.my.cnf', null, 1);
         if (!is_dir('save')) {
             mkdir('save', 0755);
