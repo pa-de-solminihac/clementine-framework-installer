@@ -1,15 +1,19 @@
 <?php
 if (CLEMENTINE_INSTALLER_DISABLE) {
-    header('Location: index.php' , true, 302);
+    header('Location: index.php', true, 302);
     die();
 }
 // teste la connexion à la base de données si possible
 global $db;
 $dberrors = array();
 $is_db_set = (isset($site_config['clementine_db']) && isset($site_config['clementine_db']['host']) && isset($site_config['clementine_db']['name']) && isset($site_config['clementine_db']['user']) && isset($site_config['clementine_db']['pass']) && $site_config['clementine_db']['host'] && $site_config['clementine_db']['name'] && $site_config['clementine_db']['user']);
+$dsn_host_port = 'mysql:host=' . $site_config['clementine_db']['host'];
+if (!empty($site_config['clementine_db']['port'])) {
+    $dsn_host_port .= ';port=' . $site_config['clementine_db']['port'];
+}
 if ($is_db_set) {
     try {
-        $db = new PDO('mysql:host=' . $site_config['clementine_db']['host'], $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
+        $db = new PDO($dsn_host_port, $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
     } catch (PDOException $e) {
         $db = null;
         $dberrors[] = 'Check credentials in <strong>/app/local/site/etc/config.ini</strong>';
@@ -18,9 +22,9 @@ if ($is_db_set) {
     if ($db) {
         try {
             $db = null;
-            $db = new PDO('mysql:host=' . $site_config['clementine_db']['host'] . ';dbname=' . $site_config['clementine_db']['name'], $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
+            $db = new PDO($dsn_host_port . ';dbname=' . $site_config['clementine_db']['name'], $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
             // migre si nécessaire app/share/modules_versions.ini vers la base de données (table clementine_installer_modules)
-            $upgraded = require('dbcheck-upgrade.php');
+            $upgraded = require 'dbcheck-upgrade.php';
             if (!$upgraded) {
                 $db = null;
                 $dberrors[] = 'Installer upgrade failed (.ini to database)';

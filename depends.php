@@ -54,7 +54,14 @@ if ($db) {
     if (!ini_get('safe_mode') && function_exists('exec') && is_callable('exec') && __CLEMENTINE_INSTALLER_PATH_TO_MYSQLDUMP__ && is_file(__CLEMENTINE_INSTALLER_PATH_TO_MYSQLDUMP__)) {
         touch('tmp/.my.cnf');
         @chmod('tmp/.my.cnf', 0600);
-        $_my_cnf = array('client' => array('password' => $site_config['clementine_db']['pass']));
+        $_my_cnf = array(
+            'client' => array(
+                'host' => $site_config['clementine_db']['host'],
+                'port' => $site_config['clementine_db']['port'],
+                'user' => $site_config['clementine_db']['user'],
+                'password' => $site_config['clementine_db']['pass'],
+            )
+        );
         write_ini_file($_my_cnf, 'tmp/.my.cnf', null, 1);
         if (!is_dir('save')) {
             mkdir('save', 0755);
