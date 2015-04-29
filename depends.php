@@ -78,13 +78,23 @@ if ($db) {
         $commande .= ' --defaults-file=' . realpath(dirname(__FILE__)) . '/tmp/.my.cnf';
         $commande .= ' -u ' . escapeshellcmd($site_config['clementine_db']['user']); // pas de flag -R car il demande trop de privileges
         $commande .= ' -B ' . escapeshellcmd($site_config['clementine_db']['name']); // flag -B pour drop et re-create database
-        $commande .= ' --result-file=' . realpath(dirname(__FILE__)) . '/save/dump.sql';
+        if (isset($_GET['confirm'])) {
+            $commande .= ' --result-file=' . realpath(dirname(__FILE__)) . '/save/dump.sql';
+        } else {
+            $commande .= ' --no-data --result-file=' . realpath(dirname(__FILE__)) . '/save/struct.sql';
+        }
         $tab_retours = array ();
         exec($commande, $tab_retours, $retour);
         if (!$retour) {
-            echo '<span class="ok">(sauvegarde effectuée)</span>';
+            if (isset($_GET['confirm'])) {
+                echo '<span class="ok">(sauvegarde effectuée)</span>';
+            }
         } else {
-            echo '<span class="warn">(échec de la sauvegarde)</span>';
+            if (!isset($_GET['confirm'])) {
+                echo '<span class="warn">(la sauvegarde ne marchera pas)</span>';
+            } else {
+                echo '<span class="warn">(échec de la sauvegarde)</span>';
+            }
             if (isset($_GET['debug'])) {
                 echo '<pre>';
                 echo $commande . "\n";
