@@ -119,6 +119,13 @@ if (!$cleanerrors) {
     echo '</span>';
 }
 
+// on revide le cache APC au cas où il aurait été rempli à nouveau pendant la procédure !
+session_start();
+session_destroy();
+if (ini_get('apc.enabled')) {
+    apc_clear_cache();
+    apc_clear_cache('user');
+}
 ?>
             </fieldset>
             <p>
