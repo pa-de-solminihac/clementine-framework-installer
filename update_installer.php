@@ -138,7 +138,6 @@ if (!$maj_installeur_dispo) {
 } else {
     echo "Mettre à jour l'installeur »";
 }
-                    
                     ?>" />
                 </form>
 <?php

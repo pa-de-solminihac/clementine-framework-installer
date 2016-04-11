@@ -13,4 +13,3 @@ if (__CLEMENTINE_REPOSITORY_URL__ != __CLEMENTINE_DEFAULT_REPOSITORY_URL__ && __
             </div>
 <?php
 }
-?>

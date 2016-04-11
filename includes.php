@@ -1,11 +1,7 @@
 <?php
 // recupere la configuration du site : installeur actif, infos de connexion à la BD du site...
 if (is_file('../app/local/site/etc/config.ini')) {
-    if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-        $site_config = parse_ini_file('../app/local/site/etc/config.ini', true, INI_SCANNER_RAW);
-    } else {
-        $site_config = parse_ini_file('../app/local/site/etc/config.ini', true);
-    }
+    $site_config = parse_ini_file('../app/local/site/etc/config.ini', true);
 }
 if (isset($site_config['clementine_installer']) && isset($site_config['clementine_installer']['enabled']) && $site_config['clementine_installer']['enabled']) {
     if (!isset($site_config['clementine_installer']['allowed_ip']) 
@@ -110,4 +106,3 @@ if (!headers_sent()) {
 }
 // détermine la racine de l'install
 define('__INSTALLER_ROOT__', realpath(dirname(__FILE__)));
-?>

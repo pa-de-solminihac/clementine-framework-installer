@@ -46,4 +46,3 @@ if ($is_db_set) {
     $db = null;
     $dberrors[] = 'DB required : please provide database credentials';
 }
-?>

@@ -78,4 +78,3 @@ if (!$upgradeerrors) {
     // annule la mise à jour : restaure le backup de la BD
     require('revert.php');
 }
-?>

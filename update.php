@@ -59,4 +59,3 @@ if (strlen(__CLEMENTINE_REPOSITORY_URL__) && !$mode_developpeur) {
 
 // appelle l'etape suivante
 require('depends.php');
-?>

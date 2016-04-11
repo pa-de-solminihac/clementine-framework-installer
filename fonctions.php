@@ -248,6 +248,12 @@ function translate_dependencies($arbre, $str = '')
 
 function creer_matrice_candidats($candidats, $evalstr = '', &$matrice = array(), $vrs = array())
 {
+    // court-circuite la création exhaustive de la matrice en renvoyant la première solution
+    if (!empty($matrice)) {
+        foreach ($matrice as $key => $val) {
+            return $val;
+        }
+    }
     if (count($candidats)) {
         $candidats_restants = $candidats;
         foreach ($candidats as $module => $versions) {
@@ -391,6 +397,10 @@ function installer_getModuleLocalUpgrades($module, $min_version = null)
     foreach (glob($dir . '/*.php') as $filepath) {
         if (is_file($filepath)) {
             $version = basename($filepath, '.php');
+            // skip files named 'sample-*'
+            if (strpos($version, 'sample-') === 0) {
+                continue;
+            }
             if (version_compare($version, $min_version) > 0) {
                 if (is_file($filepath)) {
                     $upgrades[$version] = $filepath;
@@ -530,11 +540,7 @@ function installer_getModuleConfig($ini_path, $specific_version = false)
     if (is_file($ini_path . $fichier_ini)) {
         $config = array();
         // php < 5.3 compatibility
-        if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-            $infos = parse_ini_file($ini_path . $fichier_ini, true, INI_SCANNER_RAW);
-        } else {
-            $infos = parse_ini_file($ini_path . $fichier_ini, true);
-        }
+        $infos = parse_ini_file($ini_path . $fichier_ini, true);
         $version_majeure = $specific_version;
         if (!$specific_version) {
             if (isset($infos['version'])) {
@@ -1203,5 +1209,3 @@ function preg_replace_infile($filepath, $pattern, $replacement, $backup_dir = 'c
         'backup_file' => $backup_filename
     );
 }
-
-?>

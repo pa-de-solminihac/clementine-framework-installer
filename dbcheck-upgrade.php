@@ -99,4 +99,3 @@ if ($config_db && !$config_db_vide) {
     // pas eu besoin de MAJ
     return true;
 }
-?>

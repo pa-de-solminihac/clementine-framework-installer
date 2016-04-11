@@ -172,4 +172,3 @@ if (!($dlerrors || $unziperrors) && isset($_GET['confirm'])) {
 </html>
 <?php
 }
-?>
