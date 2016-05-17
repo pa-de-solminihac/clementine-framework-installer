@@ -42,25 +42,38 @@ if ($errfile) {
     $errors['chmod'] = 'Could not manage files properly';
 }
 // site's module.ini
-if (!is_file('../app/local/site/etc/module.ini')) {
+// first try to use current site's module.ini file
+// fallback to app/local/site/etc/module.ini if not available
+if (!is_file($site_module_filepath)) {
     $errors['module_ini'] = 'Missing module.ini file';
 }
 // site's config.ini
-if (!is_file('../app/local/site/etc/config.ini')) {
+if (!is_file($site_config_filepath)) {
     $errors['config_ini'] = 'Missing config.ini file';
 }
 if (!$db) {
     $errors['db_set'] = 'Missing database credentials';
 }
-$config = installer_getModuleConfig('../app/local/site');
-if (is_array($config) 
-    && isset($config['version']) 
-    && isset($config['weight']) 
-    && isset($config['depends_' . (int) $config['version']]) 
+$config = installer_getModuleConfig('../app/' . __CLEMENTINE_HOST__ . '/local/site');
+if (is_array($config)
+    && isset($config['version'])
+    && isset($config['weight'])
+    && isset($config['depends_' . (int) $config['version']])
     && isset($config['depends_' . (int) $config['version']][(int) $config['version']])
     && !isset($errors['config_ini'])
 ) {
     $baseconfig_ok = 1;
+} else {
+    $config = installer_getModuleConfig('../app/local/site');
+    if (is_array($config)
+        && isset($config['version'])
+        && isset($config['weight'])
+        && isset($config['depends_' . (int) $config['version']])
+        && isset($config['depends_' . (int) $config['version']][(int) $config['version']])
+        && !isset($errors['config_ini'])
+    ) {
+        $baseconfig_ok = 1;
+    }
 }
 if ($db && !count($errors) && $baseconfig_ok) {
     header('Location: update.php' , true, 302);

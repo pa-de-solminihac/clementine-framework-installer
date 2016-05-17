@@ -1,7 +1,38 @@
 <?php
 // recupere la configuration du site : installeur actif, infos de connexion à la BD du site...
-if (is_file('../app/local/site/etc/config.ini')) {
-    $site_config = parse_ini_file('../app/local/site/etc/config.ini', true);
+if (isset($_SERVER['HTTP_HOST'])) {
+    $insecure_server_http_host = $_SERVER['HTTP_HOST'];
+} else {
+    // fallback to SERVER_NAME if HTTP_HOST is not set
+    $insecure_server_http_host = $_SERVER['SERVER_NAME'];
+}
+// XSS protection
+$server_http_host = preg_replace('@[^a-z0-9-\.]@i', '', $insecure_server_http_host);
+define('__SERVER_HTTP_HOST__', $server_http_host);
+// constante indentifiant le site courant
+define('__CLEMENTINE_APC_PREFIX__', md5(__SERVER_HTTP_HOST__));
+$aliases = glob(realpath(dirname(__FILE__) . '/../app/' . __SERVER_HTTP_HOST__) . '/alias-*');
+if (isset($aliases[0])) {
+    $current_site = substr(basename($aliases[0]), 6);
+    define('__CLEMENTINE_HOST__', $current_site);
+} else {
+    define('__CLEMENTINE_HOST__', __SERVER_HTTP_HOST__);
+}
+// first try to use current site's .ini file
+// fallback to app/local/site/etc/*.ini if not available
+$site_config_filepath = (dirname(__FILE__) . '/../app/' . __CLEMENTINE_HOST__ . '/local/site/etc/config.ini');
+if (!is_file($site_config_filepath)) {
+    $site_config_filepath = realpath(dirname(__FILE__) . '/../app/local/site/etc/config.ini');
+}
+$site_module_filepath = (dirname(__FILE__) . '/../app/' . __CLEMENTINE_HOST__ . '/local/site/etc/module.ini');
+if (!is_file($site_module_filepath)) {
+    $site_module_filepath = realpath(dirname(__FILE__) . '/../app/local/site/etc/module.ini');
+}
+if (!is_file($site_config_filepath)) {
+    echo "<br />\n" . '<strong>Clementine fatal error</strong>: fichier de configuration manquant : /app/local/site/etc/config.ini';
+    die();
+} else {
+    $site_config = parse_ini_file($site_config_filepath, true);
 }
 if (isset($site_config['clementine_installer']) && isset($site_config['clementine_installer']['enabled']) && $site_config['clementine_installer']['enabled']) {
     if (!isset($site_config['clementine_installer']['allowed_ip']) 

@@ -358,26 +358,34 @@ function installer_getModules($module_type = null)
     if (isset($module_type) && !in_array($module_type, $types)) {
         return false;
     }
-    $dir = '../app';
     $modules = array();
-    foreach ($types as $type) {
-        $modules[$type] = array();
-        if (isset($module_type) && $type != $module_type) {
-            continue;
+    $sites = array('', __CLEMENTINE_HOST__);
+    foreach ($sites as $site) {
+        $dir = '../app';
+        if ($site) {
+            $dir .= '/' . $site;
         }
-        if (!$dh = @opendir($dir . '/' . $type)) {
-            continue;
-        }
-        while (false !== ($obj = readdir($dh))) {
-            if (($obj == '.' || $obj == '..')
-                || (substr($obj, 0, 1) == '.')
-                || (!is_dir($dir . '/' . $type . '/' . $obj))) {
+        foreach ($types as $type) {
+            if (empty($modules[$type])) {
+                $modules[$type] = array();
+            }
+            if (isset($module_type) && $type != $module_type) {
                 continue;
             }
-            $version = installer_getModuleVersion($obj, false, false);
-            $modules[$type][$obj] = $version;
+            if (!$dh = @opendir($dir . '/' . $type)) {
+                continue;
+            }
+            while (false !== ($obj = readdir($dh))) {
+                if (($obj == '.' || $obj == '..')
+                    || (substr($obj, 0, 1) == '.')
+                    || (!is_dir($dir . '/' . $type . '/' . $obj))) {
+                    continue;
+                }
+                $version = installer_getModuleVersion($obj, false, false);
+                $modules[$type][$obj] = $version;
+            }
+            closedir($dh);
         }
-        closedir($dh);
     }
     return $modules;
 }
@@ -392,8 +400,23 @@ function installer_getPendingLocalUpgrades($module)
 
 function installer_getModuleLocalUpgrades($module, $min_version = null)
 {
-    $dir = '../app/local/' . $module . '/upgrades';
     $upgrades = array();
+    $dir = '../app/local/' . $module . '/upgrades';
+    foreach (glob($dir . '/*.php') as $filepath) {
+        if (is_file($filepath)) {
+            $version = basename($filepath, '.php');
+            // skip files named 'sample-*'
+            if (strpos($version, 'sample-') === 0) {
+                continue;
+            }
+            if (version_compare($version, $min_version) > 0) {
+                if (is_file($filepath)) {
+                    $upgrades[$version] = $filepath;
+                }
+            }
+        }
+    }
+    $dir = '../app/' . __CLEMENTINE_HOST__ . '/local/' . $module . '/upgrades';
     foreach (glob($dir . '/*.php') as $filepath) {
         if (is_file($filepath)) {
             $version = basename($filepath, '.php');
@@ -479,51 +502,57 @@ function installer_getModuleVersion($module, $check_consistency = false, $get_fr
             return false;
         }
     }
-    foreach ($types as $type) {
-        $filepath = realpath(dirname(__FILE__) . '/../app/' . $type . '/' . $module);
-        $config_ini = installer_getModuleConfig($filepath);
-        if (is_array($config_ini)) {
-            if ($type == 'share' && $check_consistency) {
-                // si demande, on verifie que $config_ini['version'] est bien celui attendu
-                if (is_array($config)) {
-                    if (isset($config_ini['version']) && isset($config[$module])) {
-                        if ($config_ini['version'] != $config[$module]) {
-                            if (isset($_GET['debug'])) {
-                                echo '<strong>Installer warning:</strong> "' . $module . '" installed sources (' . $config_ini['version'] . ') differ from the version expected by file table clementine_installer_modules (' . $config[$module] . ')';
+    $sites = array('', __CLEMENTINE_HOST__);
+    foreach ($sites as $site) {
+        foreach ($types as $type) {
+            $filepath = realpath(dirname(__FILE__) . '/../app/' . $type . '/' . $module);
+            if ($site) {
+                $filepath = realpath(dirname(__FILE__) . '/../app/' . $site . '/' . $type . '/' . $module);
+            }
+            $config_ini = installer_getModuleConfig($filepath);
+            if (is_array($config_ini)) {
+                if ($type == 'share' && $check_consistency) {
+                    // si demande, on verifie que $config_ini['version'] est bien celui attendu
+                    if (is_array($config)) {
+                        if (isset($config_ini['version']) && isset($config[$module])) {
+                            if ($config_ini['version'] != $config[$module]) {
+                                if (isset($_GET['debug'])) {
+                                    echo '<strong>Installer warning:</strong> "' . $module . '" installed sources (' . $config_ini['version'] . ') differ from the version expected by file table clementine_installer_modules (' . $config[$module] . ')';
+                                }
+                            }
+                        } else {
+                            if (isset($config_ini['version'])) {
+                                if (isset($_GET['debug'])) {
+                                    echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources installed (' . $config_ini['version'] . ') but not expected by table clementine_installer_modules<br />';
+                                }
+                            } elseif (isset($config[$module])) {
+                                if (isset($_GET['debug'])) {
+                                    echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources are wrong (version expected by table clementine_installer_modules is ' . $config[$module] . ')<br />';
+                                }
+                            } else {
+                                if (isset($_GET['debug'])) {
+                                    echo '<br /><strong>Installer warning:</strong> "' . $module . '" not expected by table clementine_installer_modules, and module sources are wrong<br />';
+                                }
                             }
                         }
                     } else {
-                        if (isset($config_ini['version'])) {
-                            if (isset($_GET['debug'])) {
-                                echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources installed (' . $config_ini['version'] . ') but not expected by table clementine_installer_modules<br />';
-                            }
-                        } elseif (isset($config[$module])) {
-                            if (isset($_GET['debug'])) {
-                                echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources are wrong (version expected by table clementine_installer_modules is ' . $config[$module] . ')<br />';
-                            }
-                        } else {
-                            if (isset($_GET['debug'])) {
-                                echo '<br /><strong>Installer warning:</strong> "' . $module . '" not expected by table clementine_installer_modules, and module sources are wrong<br />';
-                            }
-                        }
+                        // pas de configuration enregistree... ?
+                        echo '<br /><strong>Installer fatal error:</strong> incorrect table clementine_installer_modules<br />';
+                        die();
                     }
-                } else {
-                    // pas de configuration enregistree... ?
-                    echo '<br /><strong>Installer fatal error:</strong> incorrect table clementine_installer_modules<br />';
-                    die();
                 }
-            }
-            if (isset($config_ini['version'])) {
-                return $config_ini['version'];
-            }
-        } else {
-            if ($type == 'share' && $check_consistency) {
-                if (is_array($config) && isset($config[$module])) {
-                    if (isset($_GET['debug'])) {
-                        echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources not installed (version expected by table clementine_installer_modules is ' . $config[$module] . ')<br />';
+                if (isset($config_ini['version'])) {
+                    return $config_ini['version'];
+                }
+            } else {
+                if ($type == 'share' && $check_consistency) {
+                    if (is_array($config) && isset($config[$module])) {
+                        if (isset($_GET['debug'])) {
+                            echo '<br /><strong>Installer warning:</strong> "' . $module . '" sources not installed (version expected by table clementine_installer_modules is ' . $config[$module] . ')<br />';
+                        }
+                    } else {
+                        return false;
                     }
-                } else {
-                    return false;
                 }
             }
         }
@@ -601,14 +630,20 @@ function installer_getModuleWeight($module)
 {
     $module = preg_replace('/[^a-zA-Z0-9_]/S', '', $module);
     $types = array('share', 'local');
-    foreach ($types as $type) {
-        $filepath = realpath(dirname(__FILE__) . '/../app/' . $type . '/' . $module);
-        $config_ini = installer_getModuleConfig($filepath);
-        if (false === $config_ini) {
-            return false;
-        }
-        if (is_array($config_ini) && isset($config_ini['weight'])) {
-            return $config_ini['weight'];
+    $sites = array('', __CLEMENTINE_HOST__);
+    foreach ($sites as $site) {
+        foreach ($types as $type) {
+            $filepath = realpath(dirname(__FILE__) . '/../app/' . $type . '/' . $module);
+            if ($site) {
+                $filepath = realpath(dirname(__FILE__) . '/../app/' . $site . '/' . $type . '/' . $module);
+            }
+            $config_ini = installer_getModuleConfig($filepath);
+            if (false === $config_ini) {
+                return false;
+            }
+            if (is_array($config_ini) && isset($config_ini['weight'])) {
+                return $config_ini['weight'];
+            }
         }
     }
     return false;
