@@ -16,7 +16,11 @@ if ($is_db_set) {
         $db = new PDO($dsn_host_port, $site_config['clementine_db']['user'], $site_config['clementine_db']['pass']);
     } catch (PDOException $e) {
         $db = null;
-        $dberrors[] = 'Check credentials in <strong>/app/local/site/etc/config.ini</strong>';
+        $config_file_path = substr(realpath($site_config_filepath), strlen($_SERVER['DOCUMENT_ROOT']));
+        if (!$config_file_path) {
+            $config_file_path = '/app/local/site/etc/config.ini';
+        }
+        $dberrors[] = 'Check credentials in <strong>' . $config_file_path . '</strong>';
     }
     // teste si la base existe
     if ($db) {
