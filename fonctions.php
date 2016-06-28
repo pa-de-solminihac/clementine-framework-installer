@@ -1201,6 +1201,25 @@ function preg_replace_infile($filepath, $pattern, $replacement, $backup_dir = 'c
 }
 
 /**
+ * database_table_exists : chercher si la table $table existe
+ *
+ * @param string $table
+ * @access public
+ * @return void
+ */
+function database_table_exists ($table)
+{
+    global $db;
+    $sql = 'SHOW TABLES LIKE "' . $table . '"';
+    $result = $db->query($sql);
+    if (1 == $result->rowCount()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
  * database_field_exists : chercher dans la table $table si le champs $field existe
  *
  * @param string $table
