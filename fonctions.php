@@ -78,9 +78,9 @@ function copy_recursive ($src, $dst) {
 
 /**
  * get_dependencies : recupere le tableau des dependances directes d'un module, avec les numeros de versions compatibles
- * 
- * @param mixed $module 
- * @param mixed $specific_version 
+ *
+ * @param mixed $module
+ * @param mixed $specific_version
  * @access public
  * @return void
  */
@@ -129,12 +129,12 @@ function get_dependencies ($module, $specific_version)
 
 /**
  * register_dependencies : recupere recursivement (et stocke dans le tableau fourni en parametre) les dependances d'un module
- * 
+ *
  * @param mixed $deps : tableau passé par référence dans lequel seront stockés les résultats
- * @param string $module 
- * @param string $specific_version 
- * @param array $allversions 
- * @param int $max_recursion_level 
+ * @param string $module
+ * @param string $specific_version
+ * @param array $allversions
+ * @param int $max_recursion_level
  * @access public
  * @return void
  */
@@ -190,9 +190,9 @@ function register_dependencies($deps = array(), $module = 'site', $specific_vers
 }
 
 /**
- * translate_dependencies 
- * 
- * @param mixed $dependances 
+ * translate_dependencies
+ *
+ * @param mixed $dependances
  * @access public
  * @return void
  */
@@ -256,7 +256,7 @@ function creer_matrice_candidats($candidats, $evalstr = '', &$matrice = array(),
 
 /**
  * reduire_jeu_solutions : renvoie un jeu de solutions dedoublonne et dont on supprime tous les modules inutiles
- * 
+ *
  * @param mixed $solutions
  * @param mixed $evaltest
  * @access public
@@ -277,9 +277,9 @@ function reduire_jeu_solutions($solutions, $evaltest)
 
 /**
  * reduire_solution : renvoie une solution reduite au maximum
- * 
- * @param mixed $vrs 
- * @param mixed $evalstr 
+ *
+ * @param mixed $vrs
+ * @param mixed $evalstr
  * @access public
  * @return void
  */
@@ -397,7 +397,7 @@ function installer_getModuleLatestVersion($module)
 /**
  * installer_getConfigFromDb : lit la config enregistrée dans la BD
  *                             (dans la table clementine_installer_modules)
- * 
+ *
  * @access public
  * @return void
  */
@@ -411,7 +411,7 @@ function installer_getConfigFromDb($type = null)
     ';
     if (isset($type)) {
         $sql .= '
-         WHERE `type` = "' . $type . '" 
+         WHERE `type` = "' . $type . '"
         ';
     }
     if ($stmt = $db->query($sql)) {
@@ -425,8 +425,8 @@ function installer_getConfigFromDb($type = null)
 
 /**
  * installer_getModuleVersion : renvoie la version d'un module shared installé
- * 
- * @param mixed $module 
+ *
+ * @param mixed $module
  * @access public
  * @return void
  */
@@ -572,8 +572,8 @@ function installer_getModuleConfig($ini_path, $specific_version = false)
 
 /**
  * installer_getModuleWeight : renvoie le poids d'un module installé
- * 
- * @param mixed $module 
+ *
+ * @param mixed $module
  * @access public
  * @return void
  */
@@ -611,8 +611,8 @@ function isolated_include($file)
  *      upgrade-to-X.php : upgrades permettant de passer directement à la version X (sautant ainsi les upgrades intermediaires)
  *          - les upgrades-to-X ne seront appliquées que si la version X est incluse dans les mises à jour permettant d'arriver à la version $final
  *
- * @param mixed $previous 
- * @param mixed $final 
+ * @param mixed $previous
+ * @param mixed $final
  * @access public
  * @return void
  */
@@ -1198,6 +1198,45 @@ function preg_replace_infile($filepath, $pattern, $replacement, $backup_dir = 'c
         'nb_replacements' => $count,
         'backup_file' => $backup_filename
     );
+}
+
+/**
+ * database_field_exists : chercher dans la table $table si le champs $field existe
+ *
+ * @param string $table
+ * @param string $field
+ * @access public
+ * @return void
+ */
+function database_field_exists ($table, $field)
+{
+    global $db;
+    $sql = 'SHOW COLUMNS FROM `' . $table . '` LIKE "' . $field . '"';
+    $result = $db->query($sql);
+    if (0 < $result->rowCount()) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+/**
+ * database_get_field_infos : retourne un tableau contenant les infos du champs $field de la table $table
+ *
+ * @param string $table
+ * @param string $field
+ * @access public
+ * @return void
+ */
+function database_get_field_infos ($table, $field)
+{
+    global $db;
+    $sql = 'SHOW FIELDS
+            FROM `' . $table . '`
+            WHERE Field = "' . $field . '"';
+    $result = $db->query($sql);
+    return $result->fetch();
 }
 
 ?>
