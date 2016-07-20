@@ -1,4 +1,5 @@
 <?php
+$git_repository_url = 'https://github.com/pa-de-solminihac';
 // recupere la configuration du site : installeur actif, infos de connexion à la BD du site...
 if (isset($_SERVER['HTTP_HOST'])) {
     $insecure_server_http_host = $_SERVER['HTTP_HOST'];

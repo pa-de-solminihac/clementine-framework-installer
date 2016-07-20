@@ -205,7 +205,9 @@ a.next:after {
 li {
     margin: 1em 0;
 }
+.list_modules a,
 span {
+    text-decoration: none;
     font-size: 13px;
 }
 .ok {
@@ -216,6 +218,14 @@ span {
 }
 .err {
     color: #A00;
+}
+.list_modules a.module_name {
+    color: black;
+}
+.list_modules a.ok,
+.list_modules a.warn,
+.list_modules a.err {
+    text-decoration: underline;
 }
 .warning {
     border: solid orange 1px;

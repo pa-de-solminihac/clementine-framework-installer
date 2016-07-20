@@ -200,7 +200,7 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
         echo '</span>';
 ?>
                 <h4>Versions des modules</h4>
-<table>
+<table class="list_modules">
     <tr>
         <th>Module</th>
         <th>Infos</th> <!-- à installer, installé, maj dispo, install non terminée, plus utilisé, aucune version dispo -->
@@ -220,15 +220,15 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
                     }
                     if (version_compare($max_new_version, $previous_version) > 0) {
                         if ($previous_version) {
-                            echo "<td><span>$module</span></td>";
-                            echo '<td class="versions_module"><span>' . $previous_version . ' installé</span> <span class="ok">' . $max_new_version . ' disponible</span> ' . $msg_latest . '</td>';
+                            echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                            echo '<td class="versions_module"><span>' . $previous_version . ' installé</span> <a href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $max_new_version . '" target="_blank" class="ok">' . $max_new_version . ' disponible</a> ' . $msg_latest . '</td>';
                         } else {
-                            echo "<td><span>$module</span></td>";
-                            echo '<td class="versions_module"><span class="warn">non installé</span> <span class="ok">' . $max_new_version . ' disponible</span> ' . $msg_latest . '</td>';
+                            echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                            echo '<td class="versions_module"><span class="warn">non installé</span> <a href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $max_new_version . '" target="_blank" class="ok">' . $max_new_version . ' disponible</a> ' . $msg_latest . '</td>';
                         }
                     } else {
-                        echo "<td><span>$module</span></td>";
-                        echo '<td class="versions_module"><span class="warn">' . $previous_version . ' à réinstaller</span> ' . $msg_latest . '</td>';
+                        echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                        echo '<td class="versions_module"><a class="warn" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $previous_version . '" target="_blank">' . $previous_version . ' à réinstaller</a> ' . $msg_latest . '</td>';
                     }
                     echo '<td></td>';
                     echo "</tr>\n";
@@ -298,7 +298,7 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
     // Choix de la premiere solution
     if (isset($premiere_solution) && is_array($premiere_solution) && count($premiere_solution)) {
 ?>
-<table>
+<table class="list_modules">
     <tr>
         <th>Module</th>
         <th>Infos</th> <!-- à installer, installé, maj dispo, install non terminée, plus utilisé, aucune version dispo -->
@@ -323,19 +323,19 @@ if (isset($_GET['reinstall']) && $_GET['reinstall'] == 1 || count($local_module_
                         if (version_compare($max_new_version, $previous_version) > 0) {
                             $versions_choisies[$module] = $max_new_version;
                             if ($previous_version) {
-                                echo "<td><span>$module</span></td>";
-                                echo '<td class="versions_module"><span>' . $previous_version . ' installé</span> <span class="ok">' . $max_new_version . ' disponible</span> ' . $msg_latest . '</td>';
+                                echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                                echo '<td class="versions_module"><span>' . $previous_version . ' installé</span> <a href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $max_new_version . '" target="_blank" class="ok">' . $max_new_version . ' disponible</a> ' . $msg_latest . '</td>';
                             } else {
-                                echo "<td><span>$module</span></td>";
-                                echo '<td class="versions_module"><span class="warn">non installé</span> <span class="ok">' . $max_new_version . ' disponible</span> ' . $msg_latest . '</td>';
+                                echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                                echo '<td class="versions_module"><span class="warn">non installé</span> <a href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $max_new_version . '" target="_blank" class="ok">' . $max_new_version . ' disponible</a> ' . $msg_latest . '</td>';
                             }
                         } else {
                             $versions_choisies[$module] = $previous_version;
-                            echo "<td><span>$module</span></td>";
-                            echo '<td class="versions_module"><span>' . $previous_version . ' installé</span> ' . $msg_latest . '</td>';
+                            echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
+                            echo '<td class="versions_module"><a href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases/tag/' . $previous_version . '" target="_blank">' . $previous_version . ' installé</a> ' . $msg_latest . '</td>';
                         }
                     } else {
-                        echo "<td><span>$module</span></td>";
+                        echo '<td><a class="module_name" target="_blank" href="' . $git_repository_url . '/clementine-framework-module-' . $module . '/releases">' . $module . '</a></td>';
                         echo '<td class="versions_module"><span class="err">aucune version disponible</span> ' . $msg_latest . '</td>';
                     }
                     echo '<td></td>';
