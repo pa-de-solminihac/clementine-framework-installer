@@ -392,6 +392,10 @@ function installer_getModules($module_type = null)
 
 function installer_getPendingLocalUpgrades($module)
 {
+    // si pas de config enregistrée en DB c'est une first install, donc on ne tient pas compte encore des upgrades
+    if (!installer_getConfigFromDb()) {
+        return false;
+    }
     // compare la version du module enregistree en BD aux upgrades dispo
     $module_db_version  = installer_getModuleVersion($module, false, true);
     $module_db_upgrades = installer_getModuleLocalUpgrades($module, $module_db_version);
