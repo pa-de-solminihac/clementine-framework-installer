@@ -172,7 +172,7 @@ function register_dependencies($deps = array(), $module = 'site', $specific_vers
         if (is_array($dependancies)) {
             foreach ($dependancies as $dependance => $versions) {
                 if (!isset($allversions[$module])) {
-                    $allversions[$module] = '';
+                    $allversions[$module] = array();
                 }
                 $allversions[$module][$specific_version] = '';
                 // recupere recursivement la suite des dependances
@@ -184,7 +184,7 @@ function register_dependencies($deps = array(), $module = 'site', $specific_vers
             }
         } else {
             if (!isset($allversions[$module])) {
-                $allversions[$module] = '';
+                $allversions[$module] = array();
             }
             $allversions[$module][$specific_version] = '';
         }
