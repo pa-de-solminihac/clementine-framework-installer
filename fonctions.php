@@ -13,11 +13,23 @@ function dlcopy($src, $dst)
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Clementine-Installer/1.0');
+        curl_setopt($ch, CURLOPT_REFERER, $_SERVER['HTTP_HOST']);
         $ret = curl_exec($ch);
         curl_close($ch);
         fclose($fp);
     } else {
-        $ret = copy($src, $dst);
+        // set GET request referrer and follow redirects
+        $arrRequestHeaders = array(
+            'http'=>array(
+                'method' => 'GET',
+                'protocol_version' => 1.1,
+                'follow_location' => 1,
+                'header'=> 'User-Agent: Clementine-Installer/1.0' . "\r\n"
+                . 'Referer: ' . $_SERVER['HTTP_HOST'] . "\r\n"
+            )
+        );
+        $ret = copy($src, $dst, stream_context_create($arrRequestHeaders));
     }
     @chmod($dst, 0755);
     return $ret;
